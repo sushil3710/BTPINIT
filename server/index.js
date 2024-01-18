@@ -11,6 +11,11 @@ const PORT = process.env.PORT || 8080;
 app.use(bodyParser.json());
 
 
+
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
+
 app.get("/get-all-stock", getStock.getAllStockData);
 app.get("/get-stock/:stockName", getStock.getStockData);
 app.get("/get-stock/:stockName/:period", getStock.getStockDataPeriod);

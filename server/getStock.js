@@ -17,7 +17,7 @@ const getAllStockData = async (req, res) => {
       collections.map(async ({ name }) => {
         const collection = database.collection(name);
         const data = await collection.find({}).toArray(); // Adjust fields as needed
-        return { collection: name, data };
+        return { data };
       })
     );
 
@@ -43,7 +43,7 @@ const getStockData = async (req, res) => {
         const collection = database.collection(stockName);
         const stockData = await collection.find({}).toArray(); // Adjust fields as needed
 
-        res.json({ collection: stockName, data: stockData });
+        res.json({ data: stockData });
     } catch (error) {
         console.error(error);
         // Handle errors and send an appropriate response

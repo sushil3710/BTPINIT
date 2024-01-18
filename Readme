@@ -35,3 +35,6 @@ dataframe of each ticker/stock got in rsopnse
 date      open         high          low        close     adjclose   volume       ticker
 
 
+npm install react react-dom react-router-dom lightweight-charts
+
+
