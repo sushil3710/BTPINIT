@@ -1,70 +1,111 @@
-
 const mongoose = require('mongoose');
 const { calculateStartDate } = require('./getDate');
 
-
 mongoose.connect('mongodb://127.0.0.1:27017/stocks', { useNewUrlParser: true, useUnifiedTopology: true });
 
-  
-const stockSchema = new mongoose.Schema({
-  index: String,
-  open: Number,
-  high: Number,
-  low: Number,
-  close: Number,
-  adjclose: Number,
-  volume: Number,
-  ticker: String,
-});
 
-const Stock = mongoose.model('Stock', stockSchema);
 
-// async function getStockData(stock_name, time_period) {
+const getAllStockData = async (req, res) => {
+  try {
+    
+    const database = mongoose.connection.db;
+    // Get the list of collection names
+    const collections = await database.listCollections().toArray();
 
-// //const Stock = mongoose.model(stock_name);
-// const startDate = calculateStartDate(time_period);
-// // const formattedStartDate = startDate.toISOString().split('T')[0];
-// // const formattedEndDate = new Date().toISOString().split('T')[0];
+    // Fetch all documents from each collection
+    const allStockData = await Promise.all(
+      collections.map(async ({ name }) => {
+        const collection = database.collection(name);
+        const data = await collection.find({}).toArray(); // Adjust fields as needed
+        return { collection: name, data };
+      })
+    );
 
-// try {
-//     const stockData = await Stock.find({
-//         ticker: stock_name,
-//         $expr: {
-//           $gt: [
-//             { $toDate: "$index" },  // Convert the 'index' field to a Date object
-//             new Date(startDate)
-//           ]
-//         }
-//     });
-
-//     return stockData;
-//   } catch (error) {
-//     throw error;
-//   }
-// }
-
+    res.json(allStockData);
+  } catch (error) {
+    console.error(error);
+    // Handle errors and send an appropriate response
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
 
 
 const getStockData = async (req, res) => {
-    
-    var info = req.params;
-    const startDate = calculateStartDate(info.time_period);
-    const stockData=0;
-    try {
-        stockData = await Stock.find({
-            ticker: info.stock_name,
-            $expr: {
-              $gt: [
-                { $toDate: "$index" },  // Convert the 'index' field to a Date object
-                new Date(startDate)
-              ]
-            }
-        });
-    
-        return stockData;
-      }catch (error) {
-        throw error;
-      }
-  };
 
-module.exports = { getStockData };
+    try {
+        const database = mongoose.connection.db;
+        const stockName = req.params.stockName;
+        const collectionExists = await database.listCollections({ name: stockName }).hasNext();
+
+        if (!collectionExists) {
+            return res.status(404).json({ error: 'Stock not found' });
+        }
+        const collection = database.collection(stockName);
+        const stockData = await collection.find({}).toArray(); // Adjust fields as needed
+
+        res.json({ collection: stockName, data: stockData });
+    } catch (error) {
+        console.error(error);
+        // Handle errors and send an appropriate response
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
+
+const getStockDataPeriod = async (req, res) => {
+    try {
+        const database = mongoose.connection.db;
+        const stockName = req.params.stockName;
+        const period = req.params.period;
+
+        const collectionExists = await database.listCollections({ name: stockName }).hasNext();
+
+        if (!collectionExists) {
+            return res.status(404).json({ error: 'Stock not found' });
+        }
+
+        const collection = database.collection(stockName);
+
+        let startDate;
+
+        // Calculate the starting date based on the period
+        switch (period.toLowerCase()) {
+            case '1day':
+                startDate = new Date();
+                break;
+            case '1week':
+                startDate = new Date();
+                startDate.setDate(startDate.getDate() - 7);
+                break;
+            case '1month':
+                startDate = new Date();
+                startDate.setMonth(startDate.getMonth() - 1);
+                break;
+            case '1year':
+                startDate = new Date();
+                startDate.setFullYear(startDate.getFullYear() - 1);
+                break;
+            case '5years':
+                startDate = new Date();
+                startDate.setFullYear(startDate.getFullYear() - 5);
+                break;
+            default:
+                return res.status(400).json({ error: 'Invalid period' });
+        }
+
+        // Query to find documents with an index value (date) greater than or equal to startDate
+        const stockData = await collection.find({
+            index: { $gte: new Date(startDate.toISOString()) }
+        }).toArray();
+        
+
+        res.json({ collection: stockName, data: stockData });
+    } catch (error) {
+        console.error(error);
+        // Handle errors and send an appropriate response
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
+
+module.exports = { getAllStockData,getStockData,getStockDataPeriod};

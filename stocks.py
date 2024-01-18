@@ -1,7 +1,6 @@
 
 from datetime import datetime, timedelta
 import pandas as pd
-from nsetools import Nse
 from pymongo import MongoClient
 from yahoo_fin.stock_info import get_data
 
@@ -23,15 +22,15 @@ def fetch_and_store_stocks(stock_names):
     # Loop through each stock name and fetch historical data
     for stock_name in stock_names:
         try:
-            historical_data=get_data(stock_name+".NS", start_date = '01/15/2024', end_date='01/17/2024' , index_as_date = True, interval = '1d')
+            historical_data=get_data(stock_name+".NS", start_date = '11/15/2023', end_date='01/17/2024' , index_as_date = True, interval = '1d')
             #historical_data=get_data(stock_name)
             # historical_data = nse.get_historical(stock_name, start_date, end_date)
             
             if not historical_data.empty:
 
-                collection_name = stock_name  # Use the stock symbol as the collection name
+                collection_name = stock_name+".NS"  # Use the stock symbol as the collection name
                 historical_data.reset_index(inplace=True)
-                historical_data['index'] = historical_data['index'].apply(lambda date: pd.to_datetime(date).strftime('%Y-%m-%d'))
+                #historical_data['index'] = historical_data['index'].apply(lambda date: pd.to_datetime(date).strftime('%Y-%m-%d'))
                 historical_data_dict = historical_data.to_dict(orient='records')
                 #historical_data['index'] = historical_data['index'].apply(lambda date: pd.to_datetime(date).strftime('%Y-%m-%d'))
                 # Insert data into MongoDB
@@ -40,6 +39,12 @@ def fetch_and_store_stocks(stock_names):
                 print(f"Data for {stock_name} stored successfully.")
         except Exception as e:
             print(f"Error fetching data for {stock_name}: {e}")
+
+# def get_live_price(symbol):
+#     stock = yf.Ticker(symbol)
+#     live_price = stock.history(period='1d')['Close'].iloc[-1]
+#     return live_price
+            
 
 if __name__ == "__main__":
     excel_path = 'MCAP31122023.xlsx'
