@@ -1,0 +1,37 @@
+Dependencies:
+
+openpyxl
+pandas
+pymongo
+datetime
+Flask 
+plotly
+
+
+Reference for API:  https://algotrading101.com/learn/yahoo-finance-api-guide/
+
+
+yfinance (library to use api call to fetch yhe stocks   API: Yahoo Finance)
+$ pip install yfinance --upgrade --no-cache-dir
+
+
+ANother library for api: using this
+yahoo_fin
+pip install yahoo_fin
+
+Dependencies for yahoo_fin  pre-installed or may need to:
+ftplib
+io
+pandas
+requests
+requests_html
+
+
+//For historical data
+from yahoo_fin.stock_info import get_data
+get_data(ticker, start_date = None, end_date = None, index_as_date = True, interval = “1d”)
+
+dataframe of each ticker/stock got in rsopnse 
+date      open         high          low        close     adjclose   volume       ticker
+
+
