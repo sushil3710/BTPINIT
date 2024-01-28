@@ -5,6 +5,43 @@ mongoose.connect('mongodb://127.0.0.1:27017/stocks', { useNewUrlParser: true, us
 
 
 
+const getAllNames = async (req, res) => {
+    try {
+      const database = mongoose.connection.db;
+  
+      // Get the list of collection names
+      const collections = await database.listCollections().toArray();
+      const collectionNames = collections.map(({ name }) => name);
+  
+      res.json( collectionNames );
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  };
+
+  const getNames = async (req, res) => {
+    try {
+      const database = mongoose.connection.db;
+  
+      // Get the list of collection names
+      const collections = await database.listCollections().toArray();
+      const allNames = collections.map(({ name }) => name);
+  
+      // Get the search term from the request parameters
+      const searchTerm = req.params.name;
+  
+      // Filter names based on the search term
+      const matchingNames = allNames.filter(name => name.includes(searchTerm));
+  
+      res.json(matchingNames);
+      
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  };
+
 const getAllStockData = async (req, res) => {
   try {
     
@@ -43,7 +80,7 @@ const getStockData = async (req, res) => {
         const collection = database.collection(stockName);
         const stockData = await collection.find({}).toArray(); // Adjust fields as needed
 
-        res.json({ data: stockData });
+        res.json(stockData);
     } catch (error) {
         console.error(error);
         // Handle errors and send an appropriate response
@@ -108,4 +145,4 @@ const getStockDataPeriod = async (req, res) => {
 };
 
 
-module.exports = { getAllStockData,getStockData,getStockDataPeriod};
+module.exports = { getAllStockData,getStockData,getStockDataPeriod,getAllNames,getNames};

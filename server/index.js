@@ -16,6 +16,9 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
+app.get("/get-names/:name", getStock.getNames);
+console.log(typeof data);
+app.get("/get-all-names", getStock.getAllNames);
 app.get("/get-all-stock", getStock.getAllStockData);
 app.get("/get-stock/:stockName", getStock.getStockData);
 app.get("/get-stock/:stockName/:period", getStock.getStockDataPeriod);
