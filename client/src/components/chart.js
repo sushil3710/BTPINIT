@@ -1,46 +1,3 @@
-// import React, { useEffect, useRef } from "react";
-// import { createChart } from "lightweight-charts";
-
-// const CandlestickChart = ({ data }) => {
-//   const chartContainerRef = useRef();
-
-//   useEffect(() => {
-//     const chart = createChart(chartContainerRef.current, {
-//       width: chartContainerRef.current.clientWidth,
-//       height: 480,
-
-	   
-//     });
-
-//     const candlestickSeries = chart.addCandlestickSeries({
-//       upColor: "rgba(0, 150, 36, 1)",
-//       downColor: "rgba(255, 0, 0, 1)",
-//       borderUpColor: "rgba(0, 150, 36, 1)",
-//       borderDownColor: "rgba(255, 0, 0, 1)",
-//       wickUpColor: "rgba(0, 150, 36, 1)",
-//       wickDownColor: "rgba(255, 0, 0, 1)",
-//     });
-
-//     candlestickSeries.setData(data);
-
-//     const handleResize = () => {
-//       chart.applyOptions({ width: chartContainerRef.current.clientWidth });
-//     };
-
-//     window.addEventListener("resize", handleResize);
-
-//     return () => {
-//       window.removeEventListener("resize", handleResize);
-//       chart.remove();
-//     };
-//   }, [data]);
-
-//   return <div ref={chartContainerRef} />;
-// };
-
-// export default CandlestickChart;
-
-
 import React, { useEffect, useRef, useState } from "react";
 import { createChart } from "lightweight-charts";
 
@@ -52,12 +9,14 @@ const CandlestickChart = ({ selectedName }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`/get-stock/${selectedName}`);
+        let stockName = selectedName || "RELIANCE.NS"; // Use selectedName if available, otherwise default to "RELIANCE.NS"
+
+        const response = await fetch(`/get-stock/${stockName}`);
         const rawData = await response.json();
 
         // Transform raw data into the desired candlestick format
-        const transformedData = rawData.data.map(item => ({
-          time: item.index,  // Assuming 'index' is the time attribute
+        const transformedData = rawData.data.map((item) => ({
+          time: item.index, // Assuming 'index' is the time attribute
           open: item.open,
           high: item.high,
           low: item.low,
@@ -74,6 +33,11 @@ const CandlestickChart = ({ selectedName }) => {
   }, [selectedName]);
 
   useEffect(() => {
+    // Check if candlestickData is not empty before rendering the chart
+    if (candlestickData.length === 0) {
+      return;
+    }
+
     chartRef.current = createChart(chartContainerRef.current, {
       width: chartContainerRef.current.clientWidth,
       height: 480,
@@ -107,4 +71,4 @@ const CandlestickChart = ({ selectedName }) => {
   return <div ref={chartContainerRef} />;
 };
 
-export default CandlestickChart;
+export default CandlestickChart();

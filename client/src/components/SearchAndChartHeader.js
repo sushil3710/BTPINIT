@@ -1,41 +1,53 @@
 import React, { useState, useEffect } from "react";
 import CandlestickChart from "./chart";
-import axios from "axios";
 
 const SearchAndChartHeader = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [names, setNames] = useState([]);
-  const [selectedName, setSelectedName] = useState("");
+  const [selectedName, setSelectedName] = useState("RELIANCE.NS");
   const [suggestedNames, setSuggestedNames] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+ 
 
   useEffect(() => {
-    const fetchAllNames = async () => {
-      try {
-        const response = await axios.get("/get-all-names");
-        setNames(response.data);
-      } catch (error) {
+    setLoading(true);
+    // Fetch names from your API endpoint
+    fetch("/get-all-names")
+      .then((response) => response.json())
+      .then((data) => {
+        setNames(data);
+        setLoading(false);
+      })
+      .catch((error) => {
         console.error("Error fetching names:", error);
-      }
-    };
-
-    fetchAllNames();
+        setError("Error fetching names. Please try again.");
+        setLoading(false);
+      });
   }, []);
 
   useEffect(() => {
-    const debouncedFetchNames = async () => {
-      const timeoutId = setTimeout(async () => {
-        try {
-          const response = await axios.get(`/get-names/${searchTerm}`);
-          setSuggestedNames(response.data);
-        } catch (error) {
+    setLoading(true);
+    // Debouncing the API call for better performance
+    const timeoutId = setTimeout(() => {
+      // Fetch names based on the search term
+      fetch(`/get-names/${searchTerm}`)
+        .then((response) => response.json())
+        .then((data) => {
+          setSuggestedNames(data);
+          setLoading(false);
+        })
+        .catch((error) => {
           console.error("Error fetching suggested names:", error);
-        }
-      }, 300); // Adjust the delay as needed
+          setError("Error fetching suggested names. Please try again.");
+          setLoading(false);
+        });
+    }, 300); // Adjust the delay as needed
 
-      return () => clearTimeout(timeoutId);
+    // Cleanup function to clear the timeout
+    return () => {
+      clearTimeout(timeoutId);
     };
-
-    debouncedFetchNames();
   }, [searchTerm]);
 
   const handleSearch = (event) => {
@@ -58,17 +70,21 @@ const SearchAndChartHeader = () => {
         />
 
         {/* Display matched names in the dropdown */}
-        <ul>
-          {suggestedNames.map((matchedName) => (
-            <li key={matchedName} onClick={() => handleSelect(matchedName)}>
-              {matchedName}
-            </li>
-          ))}
-        </ul>
+        {loading && <p>Loading...</p>}
+        {error && <p style={{ color: "red" }}>{error}</p>}
+        {!loading && !error && (
+          <ul>
+            {suggestedNames.map((matchedName) => (
+              <li key={matchedName} onClick={() => handleSelect(matchedName)}>
+                {matchedName}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* Candlestick Chart */}
-      {selectedName && <CandlestickChart selectedName={selectedName} />}
+      {selectedName && <CandlestickChart selectedName={selectedName || "RELIANCE.NS"} />}
     </div>
   );
 };
