@@ -37,7 +37,7 @@ const App = () => {
     },
   ];
   
-
+const selname="RELIANCE.NS";
   return (
     <div className="">
       <h1 className="text-center text-3xl py-2 font-semibold my-2">

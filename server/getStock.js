@@ -136,7 +136,7 @@ const getStockDataPeriod = async (req, res) => {
         }).toArray();
         
 
-        res.json({ collection: stockName, data: stockData });
+        res.json( stockData );
     } catch (error) {
         console.error(error);
         // Handle errors and send an appropriate response
