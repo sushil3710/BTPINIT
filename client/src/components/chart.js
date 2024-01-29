@@ -13,7 +13,7 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
         let interval = selectedInterval;
         console.log("C1");
 
-        const response = await fetch(`http://localhost:8080/get-stock/${stockName}?interval=${interval}`);
+        const response = await fetch(`http://localhost:8080/get-stock/${stockName}/${interval}`);
         const rawData = await response.json();
 
         // Check if rawData is an array
@@ -36,7 +36,7 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
               close,
             };
           });
-
+           
           setCandlestickData(transformedData);
         } else {
           console.log("C2");
@@ -59,7 +59,7 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
 
     chartRef.current = createChart(chartContainerRef.current, {
       width: chartContainerRef.current.clientWidth,
-      height: 700,
+      height: window.innerHeight - 100,
     });
 
     const candlestickSeries = chartRef.current.addCandlestickSeries({

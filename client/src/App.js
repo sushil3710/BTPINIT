@@ -40,9 +40,9 @@ const App = () => {
 const selname="RELIANCE.NS";
   return (
     <div className="">
-      <h1 className="text-center text-3xl py-2 font-semibold my-2">
+      {/* <h1 className="text-center text-3xl py-2 font-semibold my-2">
         TradingView
-      </h1>
+      </h1> */}
 
       {/* <h1 className="mx-8 font-">Candlestick Chart</h1> */}
 
@@ -57,7 +57,7 @@ const selname="RELIANCE.NS";
         </button>
       </div> */}
 
-    <h1 className="flex justify-center text-4xl my-2 text-blue-600 ">CandleStick Chart</h1>
+    {/* <h1 className="flex justify-center text-4xl my-2 text-blue-600 ">CandleStick Chart</h1> */}
       {/* <TimeHeader></TimeHeader> */}
       <SearchAndChartHeader></SearchAndChartHeader>
      {/* <CandlestickChart selectedName={selname} /> */}
