@@ -9,21 +9,38 @@ const CandlestickChart = ({ selectedName }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        let stockName = selectedName || "RELIANCE.NS"; // Use selectedName if available, otherwise default to "RELIANCE.NS"
+        
+        let stockName = selectedName;
 
-        const response = await fetch(`/get-stock/${stockName}`);
+        const response = await fetch(`http://localhost:8080/get-stock/${stockName}`);
         const rawData = await response.json();
 
-        // Transform raw data into the desired candlestick format
-        const transformedData = rawData.data.map((item) => ({
-          time: item.index, // Assuming 'index' is the time attribute
-          open: item.open,
-          high: item.high,
-          low: item.low,
-          close: item.close,
-        }));
+        // Check if rawData is an array
+        if (Array.isArray(rawData)) {
+          // Transform raw data into the desired candlestick format
+          const transformedData = rawData.map((item) => {
+            // Format the date to "yyyy-mm-dd"
+            const open = typeof item.open === "number" ? item.open : 0;
+            const high = typeof item.high === "number" ? item.high : 0;
+            const low = typeof item.low === "number" ? item.low : 0;
+            const close = typeof item.close === "number" ? item.close : 0;
+            
+            const formattedDate = new Date(item.index).toISOString().split('T')[0];
+    
+            
+  return {
+    time: formattedDate,
+    open,
+    high,
+    low,
+    close,
+  };
+          });
 
-        setCandlestickData(transformedData);
+          setCandlestickData(transformedData);
+        } else {
+          console.error("Invalid data structure received:", rawData);
+        }
       } catch (error) {
         console.error("Error fetching candlestick data:", error);
       }
@@ -71,4 +88,4 @@ const CandlestickChart = ({ selectedName }) => {
   return <div ref={chartContainerRef} />;
 };
 
-export default CandlestickChart();
+export default CandlestickChart;

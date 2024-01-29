@@ -36,6 +36,7 @@ const App = () => {
       close: 176.97,
     },
   ];
+  
 
   return (
     <div className="">
@@ -45,7 +46,7 @@ const App = () => {
 
       {/* <h1 className="mx-8 font-">Candlestick Chart</h1> */}
 
-      <div className="container flex ">
+      {/* <div className="container flex ">
         <input
           class=" mx-4  my-4 p-2 border border-gray-300 rounded-md  flex items-center justify-center"
           placeholder="Enter your stock"
@@ -54,12 +55,12 @@ const App = () => {
           {" "}
           Search
         </button>
-      </div>
+      </div> */}
 
     <h1 className="flex justify-center text-4xl my-2 text-blue-600 ">CandleStick Chart</h1>
-      <TimeHeader></TimeHeader>
+      {/* <TimeHeader></TimeHeader> */}
       <SearchAndChartHeader></SearchAndChartHeader>
-     {/* <CandlestickChart data={candlestickData} /> */}
+     {/* <CandlestickChart selectedName={selname} /> */}
     </div>
   );
 };

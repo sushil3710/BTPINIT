@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import CandlestickChart from "./chart";
+import SelectSearch from 'react-select-search';
 
 const SearchAndChartHeader = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -8,12 +9,11 @@ const SearchAndChartHeader = () => {
   const [suggestedNames, setSuggestedNames] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
- 
 
   useEffect(() => {
     setLoading(true);
     // Fetch names from your API endpoint
-    fetch("/get-all-names")
+    fetch("http://localhost:8080/get-all-names")
       .then((response) => response.json())
       .then((data) => {
         setNames(data);
@@ -30,52 +30,66 @@ const SearchAndChartHeader = () => {
     setLoading(true);
     // Debouncing the API call for better performance
     const timeoutId = setTimeout(() => {
-      // Fetch names based on the search term
-      fetch(`/get-names/${searchTerm}`)
-        .then((response) => response.json())
-        .then((data) => {
-          setSuggestedNames(data);
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error("Error fetching suggested names:", error);
-          setError("Error fetching suggested names. Please try again.");
-          setLoading(false);
-        });
+      // Filter names based on the search term
+      const filteredNames = names.filter((name) =>
+        name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setSuggestedNames(filteredNames);
+      setLoading(false);
     }, 300); // Adjust the delay as needed
 
     // Cleanup function to clear the timeout
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [searchTerm]);
+  }, [searchTerm, names]);
 
   const handleSearch = (event) => {
-    setSearchTerm(event.target.value);
+    const newSearchTerm = event.target.value;
+    setSearchTerm(newSearchTerm);
+    setError(null); // Clear the error when a new search term is entered
+
+    // Set suggestions only if the search term is not empty
+    if (newSearchTerm.trim() !== "") {
+      setSuggestedNames(
+        names.filter((name) => name.toLowerCase().includes(newSearchTerm.toLowerCase()))
+      );
+    } else {
+      setSuggestedNames([]); // Clear suggestions when the search term is empty
+    }
   };
 
-  const handleSelect = (name) => {
-    setSelectedName(name);
+  const handleSelect = (selectedName) => {
+    const originalName = names.find(name => name.toLowerCase() === selectedName.toLowerCase());
+    console.log("Selected Name:", originalName);
+    setSelectedName(originalName);
+    setSuggestedNames([]); // Clear suggestions when a name is selected
   };
+  
+
 
   return (
-    <div className="flex bg-green-300 text-green-700 font-bold justify-between">
-      <div className="mx-2">
+     <div className="flex flex-col items-center bg-green-200 text-green-700 font-bold" style={{ height: "80px" }}>
+      {/* <SelectSearch options={names} value="sv" name="language" placeholder="Choose your language" /> */}
+      <div className="m-7">
         {/* Search Bar */}
         <input
           type="text"
           placeholder="Search names..."
           value={searchTerm}
           onChange={handleSearch}
+          className="border rounded py-2 px-4 focus:outline-none focus:border-blue-500"
         />
 
-        {/* Display matched names in the dropdown */}
-        {loading && <p>Loading...</p>}
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        {!loading && !error && (
-          <ul>
+        {/* Display names in the dropdown */}
+        {suggestedNames.length > 0 && (
+          <ul className="list-none absolute bg-white w-48 border rounded mt-1 overflow-y-auto max-h-32">
             {suggestedNames.map((matchedName) => (
-              <li key={matchedName} onClick={() => handleSelect(matchedName)}>
+              <li
+                key={matchedName}
+                onClick={() => handleSelect(matchedName)}
+                className="cursor-pointer hover:bg-gray-200 py-1 px-2"
+              >
                 {matchedName}
               </li>
             ))}
@@ -84,7 +98,7 @@ const SearchAndChartHeader = () => {
       </div>
 
       {/* Candlestick Chart */}
-      {selectedName && <CandlestickChart selectedName={selectedName || "RELIANCE.NS"} />}
+      {<CandlestickChart selectedName={selectedName} />}
     </div>
   );
 };
