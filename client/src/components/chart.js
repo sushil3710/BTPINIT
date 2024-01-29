@@ -59,7 +59,7 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
 
     chartRef.current = createChart(chartContainerRef.current, {
       width: chartContainerRef.current.clientWidth,
-      height: 480,
+      height: 700,
     });
 
     const candlestickSeries = chartRef.current.addCandlestickSeries({
