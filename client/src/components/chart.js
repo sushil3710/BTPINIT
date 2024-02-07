@@ -5,46 +5,66 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
   const chartContainerRef = useRef();
   const chartRef = useRef(null);
   const [candlestickData, setCandlestickData] = useState([]);
+  const [lineData, setLineData] = useState([]);
+  const [areaData, setAreaData] = useState([]);
+  const [timeValues, setTimeValues] = useState([]);
+  const [high,setHigh]=useState();
+  const [low,setLow]=useState();
+  // const areaSeries = chart.addAreaSeries({ lineColor: '#2962FF', topColor: '#2962FF', bottomColor: 'rgba(41, 98, 255, 0.28)' });
+
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         let stockName = selectedName;
         let interval = selectedInterval;
-        console.log("C1");
 
         const response = await fetch(`http://localhost:8080/get-stock/${stockName}/${interval}`);
         const rawData = await response.json();
+        const lineResponse = await fetch(`http://localhost:8080/get-prediction/${stockName}/${interval}`);
+        const lineRawData = await lineResponse.json();
+        const firstItem = lineRawData[0];
+        const { open, high, low, close, adjclose } = firstItem;
+        // setHigh(high);
+        // setLow(low);
 
-        // Check if rawData is an array
+        
+
+        // const areaData = timeValues.map(time => ({
+        //   time,
+        //   value: high
+        // }));
+      
+        // Set data for line series
+        
+        // setAreaData(areaData);
+
         if (Array.isArray(rawData)) {
-          // Transform raw data into the desired candlestick format
-          const transformedData = rawData.map((item) => {
-            // Format the date to "yyyy-mm-dd"
-            const open = typeof item.open === "number" ? item.open : 0;
-            const high = typeof item.high === "number" ? item.high : 0;
-            const low = typeof item.low === "number" ? item.low : 0;
-            const close = typeof item.close === "number" ? item.close : 0;
-
-            const formattedDate = new Date(item.index).toISOString().split("T")[0];
-
-            return {
-              time: formattedDate,
-              open,
-              high,
-              low,
-              close,
-            };
-          });
-           
+          const transformedData = rawData.map((item) => ({
+            time: new Date(item.index).toISOString().split("T")[0],
+            open: typeof item.open === "number" ? item.open : 0,
+            high: typeof item.high === "number" ? item.high : 0,
+            low: typeof item.low === "number" ? item.low : 0,
+            close: typeof item.close === "number" ? item.close : 0
+          }));
           setCandlestickData(transformedData);
+          
+          const times = rawData.map((item) => new Date(item.index).toISOString().split("T")[0]);
+          setTimeValues(times);
+
+          const lineData = timeValues.map(time => ({
+            time,
+            value: adjclose
+          }));
+          setLineData(lineData);
+          
         } else {
-          console.log("C2");
-          console.error("Invalid data structure received:", rawData);
+          console.error("Invalid candlestick data structure received:", rawData);
         }
-      } catch (error) {
-        console.log("C3");
-        console.error("Error fetching candlestick data:", error);
+
+    }
+      catch (error) {
+        console.error("Error fetching data:", error);
       }
     };
 
@@ -52,8 +72,7 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
   }, [selectedName, selectedInterval]);
 
   useEffect(() => {
-    // Check if candlestickData is not empty before rendering the chart
-    if (candlestickData.length === 0) {
+    if (candlestickData.length === 0 || lineData.length === 0) {
       return;
     }
 
@@ -73,8 +92,22 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
 
     candlestickSeries.setData(candlestickData);
 
+
+
+    const lineSeries = chartRef.current.addLineSeries({ color: 'blue', lineWidth: 3 });
+    lineSeries.setData(lineData);
+
+    // const areaSeries = chartRef.current.addAreaSeries({ lineColor: 'blue', topColor: '#87CEEB', bottomColor: 'rgba(41, 98, 255, 0.28)' });
+    // const upperBound = areaData.map(item => ({ time: item.time, value: high }));
+    // const lowerBound = areaData.map(item => ({ time: item.time, value: low }));
+    
+
+// Set data for area series
+    // areaSeries.setData(upperBound, lowerBound);
+    // areaSeries.setData(areaData);
+
+  
     const handleResize = () => {
-      console.log("C4");
       chartRef.current.applyOptions({
         width: chartContainerRef.current.clientWidth,
       });
@@ -86,9 +119,14 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
       window.removeEventListener("resize", handleResize);
       chartRef.current.remove();
     };
-  }, [candlestickData]);
+  }, [candlestickData, lineData]);
 
-  return <div ref={chartContainerRef} />;
+  return (
+    <div>
+      <div className="stock-name"  style={{ fontWeight: 'bold', marginLeft: '10px' }}>{selectedName}</div>
+      <div ref={chartContainerRef} />
+    </div>
+  );
 };
 
 export default CandlestickChart;

@@ -4,43 +4,51 @@ const { calculateStartDate } = require('./getDate');
 mongoose.connect('mongodb://127.0.0.1:27017/stocks', { useNewUrlParser: true, useUnifiedTopology: true });
 
 
-
 const getAllNames = async (req, res) => {
-    try {
+  try {
       const database = mongoose.connection.db;
-  
+
       // Get the list of collection names
       const collections = await database.listCollections().toArray();
-      const collectionNames = collections.map(({ name }) => name);
-  
-      res.json( collectionNames );
-    } catch (error) {
+      const collectionNames = collections
+          .map(({ name }) => name)
+          .filter(name => !name.endsWith("1day") && !name.endsWith("1week") && !name.endsWith("1month") && !name.endsWith("1year"));
+
+      res.json(collectionNames);
+  } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal Server Error' });
-    }
-  };
+  }
+};
+
 
   const getNames = async (req, res) => {
     try {
-      const database = mongoose.connection.db;
-  
-      // Get the list of collection names
-      const collections = await database.listCollections().toArray();
-      const allNames = collections.map(({ name }) => name);
-  
-      // Get the search term from the request parameters
-      const searchTerm = req.params.name;
-  
-      // Filter names based on the search term
-      const matchingNames = allNames.filter(name => name.includes(searchTerm));
-  
-      res.json(matchingNames);
-      
+        const database = mongoose.connection.db;
+
+        // Get the list of collection names
+        const collections = await database.listCollections().toArray();
+        const allNames = collections.map(({ name }) => name);
+
+        // Filter out collections to ignore
+        const filteredNames = allNames.filter(name => {
+            return !name.endsWith("1day") && !name.endsWith("1week") && !name.endsWith("1month") && !name.endsWith("1year");
+        });
+
+        // Get the search term from the request parameters
+        const searchTerm = req.params.name;
+
+        // Filter names based on the search term
+        const matchingNames = filteredNames.filter(name => name.includes(searchTerm));
+
+        res.json(matchingNames);
+
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
-  };
+};
+
 
 const getAllStockData = async (req, res) => {
   try {
@@ -109,6 +117,7 @@ const getStockDataPeriod = async (req, res) => {
         switch (period.toLowerCase()) {
             case '1day':
                 startDate = new Date();
+                startDate.setDate(startDate.getDate()-1)
                 break;
             case '1week':
                 startDate = new Date();
@@ -145,4 +154,32 @@ const getStockDataPeriod = async (req, res) => {
 };
 
 
-module.exports = { getAllStockData,getStockData,getStockDataPeriod,getAllNames,getNames};
+const getPrediction = async (req, res) => {
+  try {
+
+      const database = mongoose.connection.db;
+      const stockName = req.params.stockName;
+      const period = req.params.period;
+      
+      let stockDataCollection;
+
+      if(period.toLowerCase()==='1week' || period.toLowerCase()==='1day'){
+         stockDataCollection = database.collection(`${stockName}_1week`);
+      }else if(period.toLowerCase()==='1month'){
+         stockDataCollection = database.collection(`${stockName}_1month`);
+      }else if(period.toLowerCase()==='1year' || period.toLowerCase()==='5years'){
+         stockDataCollection = database.collection(`${stockName}_1year`);
+      }
+
+    const stockData = await stockDataCollection.find().toArray();
+    res.json(stockData);
+  
+  } catch (error) {
+      console.error(error);
+      // Handle errors and send an appropriate response
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
+module.exports = { getAllStockData,getStockData,getStockDataPeriod,getAllNames,getNames,getPrediction};

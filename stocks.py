@@ -17,12 +17,13 @@ def fetch_and_store_stocks(stock_names):
     # print(end_date)
     # start_date = end_date - timedelta(days=30)
     historical_data_dict = {}
-
+    today = datetime.today()
+    end_d = today.strftime('%m/%d/%Y')
 
     # Loop through each stock name and fetch historical data
     for stock_name in stock_names:
         try:
-            historical_data=get_data(stock_name+".NS", start_date = '01/01/2017', end_date='01/29/2024' , index_as_date = True, interval = '1d')
+            historical_data=get_data(stock_name+".NS", start_date = '01/01/2010', end_date=end_d , index_as_date = True, interval = '1d')
             #historical_data=get_data(stock_name)
             # historical_data = nse.get_historical(stock_name, start_date, end_date)
             
@@ -38,7 +39,7 @@ def fetch_and_store_stocks(stock_names):
 
                 print(f"Data for {stock_name} stored successfully.")
         except Exception as e:
-            print(f"Error fetching data for {stock_name}: {e}")
+            print(f"Stock not Registered {stock_name}: {e}")
 
 # def get_live_price(symbol):
 #     stock = yf.Ticker(symbol)
