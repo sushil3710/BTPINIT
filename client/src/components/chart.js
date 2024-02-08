@@ -6,7 +6,8 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
   const chartRef = useRef(null);
   const [candlestickData, setCandlestickData] = useState([]);
   const [lineData, setLineData] = useState([]);
-  const [areaData, setAreaData] = useState([]);
+  const [baseData1, setBaseData1] = useState([]);
+  const [baseData2, setBaseData2] = useState([]);
   const [timeValues, setTimeValues] = useState([]);
   const [high,setHigh]=useState();
   const [low,setLow]=useState();
@@ -25,19 +26,10 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
         const lineRawData = await lineResponse.json();
         const firstItem = lineRawData[0];
         const { open, high, low, close, adjclose } = firstItem;
-        // setHigh(high);
-        // setLow(low);
+        setHigh(high);
+        setLow(low);
 
         
-
-        // const areaData = timeValues.map(time => ({
-        //   time,
-        //   value: high
-        // }));
-      
-        // Set data for line series
-        
-        // setAreaData(areaData);
 
         if (Array.isArray(rawData)) {
           const transformedData = rawData.map((item) => ({
@@ -57,6 +49,18 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
             value: adjclose
           }));
           setLineData(lineData);
+
+          const baseData1 = timeValues.map(time => ({
+            time,
+            value: high
+          }));
+          setBaseData1(baseData1);
+
+          const baseData2 = timeValues.map(time => ({
+            time,
+            value: low
+          }));
+          setBaseData2(baseData2);
           
         } else {
           console.error("Invalid candlestick data structure received:", rawData);
@@ -97,15 +101,30 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
     const lineSeries = chartRef.current.addLineSeries({ color: 'blue', lineWidth: 3 });
     lineSeries.setData(lineData);
 
-    // const areaSeries = chartRef.current.addAreaSeries({ lineColor: 'blue', topColor: '#87CEEB', bottomColor: 'rgba(41, 98, 255, 0.28)' });
-    // const upperBound = areaData.map(item => ({ time: item.time, value: high }));
-    // const lowerBound = areaData.map(item => ({ time: item.time, value: low }));
+
+    const baselineSeries1 = chartRef.current.addBaselineSeries({
+      // baseValue: { type: 'price', price: 25 },
+      topLineColor: 'rgba(38, 166, 154, 1)',
+      topFillColor1: 'rgba(38, 166, 154, 0.28)',
+      topFillColor2: 'rgba(38, 166, 154, 0.05)',
+      bottomLineColor: 'rgba(239, 83, 80, 1)',
+      bottomFillColor1: 'rgba(239, 83, 80, 0.05)',
+      bottomFillColor2: 'rgba(239, 83, 80, 0.28)'
+    });
     
-
-// Set data for area series
-    // areaSeries.setData(upperBound, lowerBound);
-    // areaSeries.setData(areaData);
-
+    const baselineSeries2 = chartRef.current.addBaselineSeries({
+      // baseValue: { type: 'price', price: 25 },
+      topLineColor: 'rgba(239, 83, 80, 1)',
+      topFillColor1: 'rgba(239, 83, 80, 0.28)',
+      topFillColor2: 'rgba(239, 83, 80, 0.05)',
+      bottomLineColor: 'rgba(38, 166, 154, 1)',
+      bottomFillColor1: 'rgba(38, 166, 154, 0.05)',
+      bottomFillColor2: 'rgba(38, 166, 154, 0.28)'
+    });
+    
+    
+    // baselineSeries1.setData(baseData1);
+    // baselineSeries2.setData(baseData2);
   
     const handleResize = () => {
       chartRef.current.applyOptions({

@@ -5,6 +5,8 @@ const SeriesChart = ({ selectedName, selectedInterval }) => {
   const chartContainerRef = useRef();
 
   const [seriesdata, setSeriesData] = useState([]);
+  const [lineData, setLineData] = useState([]);
+  const [timeValues, setTimeValues] = useState([]);
   const chartOptions = {
     layout: {
       textColor: "black",
@@ -24,21 +26,31 @@ const SeriesChart = ({ selectedName, selectedInterval }) => {
           `http://localhost:8080/get-stock/${stockName}/${interval}`
         );
         const rawData = await response.json();
+        const lineResponse = await fetch(`http://localhost:8080/get-prediction/${stockName}/${interval}`);
+        const lineRawData = await lineResponse.json();
+        const firstItem = lineRawData[0];
+        const { open, high, low, close, adjclose } = firstItem;
 
         if (Array.isArray(rawData)) {
           const transformedData = rawData.map((item) => {
             const value = typeof item.close === "number" ? item.close : 0;
-            const formattedDate = new Date(item.index)
-              .toISOString()
-              .split("T")[0];
-
+            const formattedDate = new Date(item.index).toISOString().split("T")[0];
             return {
               time: formattedDate,
               value,
             };
           });
-
           setSeriesData(transformedData);
+          const times = rawData.map((item) => new Date(item.index).toISOString().split("T")[0]);
+          setTimeValues(times);
+
+         const lineData = timeValues.map(time => ({
+           time,
+           value: close
+         }));
+         setLineData(lineData);
+
+         
         } else {
           console.error("Invalid data structure received:", rawData);
         }
@@ -53,8 +65,10 @@ const SeriesChart = ({ selectedName, selectedInterval }) => {
     // Check if candlestickData is not empty before rendering the chart
     const chart = createChart(chartContainerRef.current, chartOptions);
     const lineSeries = chart.addLineSeries({ color: "#2962FF" });
-
     lineSeries.setData(seriesdata);
+
+    const lineSeries2 = chart.addLineSeries({ color: 'gray', lineWidth: 3 });
+    lineSeries2.setData(lineData);
 
     chart.timeScale().fitContent();
 

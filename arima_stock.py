@@ -9,6 +9,51 @@ from statsmodels.tools.sm_exceptions import ConvergenceWarning
 client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = client["stocks"]
 
+
+
+# Define function to generate predictions for a stock
+def generate_predictions_daily(stock_data):
+    # Extract relevant data
+    daily_opens = [day['open'] for day in stock_data]
+    daily_highs = [day['high'] for day in stock_data]
+    daily_lows = [day['low'] for day in stock_data]
+    daily_closes = [day['close'] for day in stock_data]
+    daily_adjcloses = [day['adjclose'] for day in stock_data]
+
+    end_date = stock_data[-1]['index']
+ 
+    # Fit ARIMA models for each value
+    open_model = ARIMA(daily_opens, order=(0, 1, 0))
+    high_model = ARIMA(daily_highs, order=(0, 1, 0))
+    low_model = ARIMA(daily_lows, order=(0, 1, 0))
+    close_model = ARIMA(daily_closes, order=(0, 1, 0))
+    adjclose_model = ARIMA(daily_adjcloses, order=(0, 1, 0))
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", ConvergenceWarning)
+
+    open_prediction = open_model.fit().forecast(steps=1)[0]
+    high_prediction = high_model.fit().forecast(steps=1)[0]
+    low_prediction = low_model.fit().forecast(steps=1)[0]
+    close_prediction = close_model.fit().forecast(steps=1)[0]
+    adjclose_prediction = adjclose_model.fit().forecast(steps=1)[0]
+    
+    pred_document = {
+        'index': end_date.strftime("%Y-%m-%dT%H:%M:%S.%f%z"),
+        'open': open_prediction,
+        'high': high_prediction,
+        'low': low_prediction,
+        'close': close_prediction,
+        'adjclose': adjclose_prediction,
+        'ticker': stock_data[0]['ticker']
+    }
+
+    
+    return pred_document
+
+
+
+
 # Define function to generate predictions for a stock
 def generate_predictions_monthly(stock_data):
     # Extract relevant data
@@ -207,6 +252,19 @@ for collection_name in db.list_collection_names():
     
     # Get current date
     current_date = datetime.now()
+
+    #Daily
+    start_date = current_date - timedelta(days=12)
+    end_date = current_date - timedelta(days=2)
+    query = {'index': {'$gte': start_date, '$lte': end_date}}
+    stock_data = list(collection.find(query))
+    if not stock_data:
+     print(f"No data found in collection '{collection_name}' for the specified date range.")
+     continue  # Skip to the next collection
+    pred_documents = generate_predictions_daily(stock_data)
+    pred_collection_name = f"{collection_name}_1day"
+    pred_collection = db[pred_collection_name]
+    pred_collection.insert_one(pred_documents)
     
 
     #Weekly

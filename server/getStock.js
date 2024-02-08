@@ -117,7 +117,7 @@ const getStockDataPeriod = async (req, res) => {
         switch (period.toLowerCase()) {
             case '1day':
                 startDate = new Date();
-                startDate.setDate(startDate.getDate()-1)
+                startDate.setDate(startDate.getDate()-2)
                 break;
             case '1week':
                 startDate = new Date();
@@ -162,14 +162,25 @@ const getPrediction = async (req, res) => {
       const period = req.params.period;
       
       let stockDataCollection;
-
-      if(period.toLowerCase()==='1week' || period.toLowerCase()==='1day'){
+      if(period.toLowerCase()==='1day'){
+        stockDataCollection = database.collection(`${stockName}_1day`);
+     }else if(period.toLowerCase()==='1week'){
          stockDataCollection = database.collection(`${stockName}_1week`);
       }else if(period.toLowerCase()==='1month'){
          stockDataCollection = database.collection(`${stockName}_1month`);
       }else if(period.toLowerCase()==='1year' || period.toLowerCase()==='5years'){
          stockDataCollection = database.collection(`${stockName}_1year`);
       }
+
+    //   if(period.toLowerCase()==='1week' || period.toLowerCase()==='1day'){
+    //     stockDataCollection = database.collection(`${stockName}_1day`);
+    //  }else if(period.toLowerCase()==='1month'){
+    //      stockDataCollection = database.collection(`${stockName}_1week`);
+    //   }else if(period.toLowerCase()==='1year'){
+    //      stockDataCollection = database.collection(`${stockName}_1month`);
+    //   }else if(period.toLowerCase()==='5years'){
+    //      stockDataCollection = database.collection(`${stockName}_1year`);
+    //   }
 
     const stockData = await stockDataCollection.find().toArray();
     res.json(stockData);
