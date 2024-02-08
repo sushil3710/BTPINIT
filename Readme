@@ -38,3 +38,5 @@ date      open         high          low        close     adjclose   volume     
 npm install react react-dom react-router-dom lightweight-charts
 
 
+do delete the database command
+db.getCollectionNames().forEach(function (collectionName) { if (collectionName.endsWith("1day")) { db[collectionName].drop(); } });

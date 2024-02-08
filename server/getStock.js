@@ -162,28 +162,9 @@ const getPrediction = async (req, res) => {
       const period = req.params.period;
       
       let stockDataCollection;
-      if(period.toLowerCase()==='1day'){
-        stockDataCollection = database.collection(`${stockName}_1day`);
-     }else if(period.toLowerCase()==='1week'){
-         stockDataCollection = database.collection(`${stockName}_1week`);
-      }else if(period.toLowerCase()==='1month'){
-         stockDataCollection = database.collection(`${stockName}_1month`);
-      }else if(period.toLowerCase()==='1year' || period.toLowerCase()==='5years'){
-         stockDataCollection = database.collection(`${stockName}_1year`);
-      }
-
-    //   if(period.toLowerCase()==='1week' || period.toLowerCase()==='1day'){
-    //     stockDataCollection = database.collection(`${stockName}_1day`);
-    //  }else if(period.toLowerCase()==='1month'){
-    //      stockDataCollection = database.collection(`${stockName}_1week`);
-    //   }else if(period.toLowerCase()==='1year'){
-    //      stockDataCollection = database.collection(`${stockName}_1month`);
-    //   }else if(period.toLowerCase()==='5years'){
-    //      stockDataCollection = database.collection(`${stockName}_1year`);
-    //   }
-
-    const stockData = await stockDataCollection.find().toArray();
-    res.json(stockData);
+      stockDataCollection = database.collection(`${stockName}_predicted`);
+      const stockData = await stockDataCollection.find().toArray();
+      res.json(stockData);
   
   } catch (error) {
       console.error(error);
