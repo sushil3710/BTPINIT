@@ -93,6 +93,12 @@ const SearchAndChartHeader = () => {
         <div
           onClick={toggleSidePanel}
           className={`md:w-64 w-56   ${isSidePanelOpen ? "block" : "hidden"}`}
+          style={{position: "fixed",
+          top: 0,
+          left: 0, // Adjust this value to move the panel more to the left
+          width: "fit-content",
+          height: "100vh",
+          zIndex: 1000,}}
         >
           <SidePanel></SidePanel>
         </div>
@@ -169,21 +175,24 @@ const SearchAndChartHeader = () => {
         </div>
       </div>
 
-      <div style={{ height: "200px", width: "100%" }}>
-        <div className=" border-black-500 border-2  "></div>
-        {chartType === "candlesticks" ? (
-          <CandlestickChart
-            selectedName={selectedName}
-            selectedInterval={selectedInterval}
-          />
-        ) : (
-          <SeriesChart
-            selectedName={selectedName}
-            selectedInterval={selectedInterval}
-          ></SeriesChart>
-        )}
-      </div>
-    </div>
+  <div className="stock-name"  style={{ fontWeight: 'bold', marginLeft: '10px' }}>{selectedName}</div>
+  <div style={{ height: "80vh", width: "95%", overflow: "auto", marginLeft: "8px", marginRight: "1px",marginTop: "8px"}}>
+  <div style={{ border: "2px solid #000", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)", padding: "10px" }}>
+    {chartType === "candlesticks" ? (
+      <CandlestickChart
+        selectedName={selectedName}
+        selectedInterval={selectedInterval}
+      />
+    ) : (
+      <SeriesChart
+        selectedName={selectedName}
+        selectedInterval={selectedInterval}
+      />
+    )}
+  </div>
+</div>
+
+ </div>
   );
 };
 

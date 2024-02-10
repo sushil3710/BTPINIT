@@ -6,7 +6,6 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
   const chartRef = useRef(null);
   const [candlestickData, setCandlestickData] = useState([]);
   const [lineData, setLineData] = useState([]);
-  const [timeValues, setTimeValues] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -29,15 +28,14 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
           }));
           setCandlestickData(transformedData);
           
-          // const times = rawData.map((item) => new Date(item.index).toISOString().split("T")[0]);
-          // setTimeValues(times);
 
           if (Array.isArray(lineRawData)) {
             const transformedData = lineRawData.map((item) => ({
               time: new Date(item.index).toISOString().split("T")[0],
-              close: typeof item.close === "number" ? item.close : 0
+              value: typeof item.close === "number" ? item.close : 0
             }));
             setLineData(transformedData);
+            //console.log(lineData)
           
         } else {
           console.error("Invalid candlestick data structure received:", rawData);
@@ -53,14 +51,81 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
     fetchData();
   }, [selectedName, selectedInterval]);
 
+   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        let stockName = selectedName;
+        let interval = selectedInterval;
+
+        const response = await fetch(`http://localhost:8080/get-stock/${stockName}/${interval}`);
+        const rawData = await response.json();
+        const lineResponse = await fetch(`http://localhost:8080/get-prediction/${stockName}`);
+        const lineRawData = await lineResponse.json();
+      
+        if (Array.isArray(rawData)) {
+          const transformedData = rawData.map((item) => ({
+            time: new Date(item.index).toISOString().split("T")[0],
+            open: typeof item.open === "number" ? item.open : 0,
+            high: typeof item.high === "number" ? item.high : 0,
+            low: typeof item.low === "number" ? item.low : 0,
+            close: typeof item.close === "number" ? item.close : 0
+          }));
+          setCandlestickData(transformedData);
+          
+
+    }
+  }
+      catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, [selectedName, selectedInterval]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        let stockName = selectedName;
+        let interval = selectedInterval;
+  
+        const lineResponse = await fetch(`http://localhost:8080/get-prediction/${stockName}`);
+        const lineRawData = await lineResponse.json();
+        lineRawData.sort((a, b) => a.index - b.index);
+  
+        if (Array.isArray(lineRawData)) {
+          const transformedData = lineRawData.map((item) => ({
+            time: new Date(item.index).toISOString().split("T")[0],
+            value: typeof item.close === "number" ? item.close : 0
+          }));
+          
+          transformedData.sort((a, b) => new Date(a.time) - new Date(b.time));
+          //console.log(transformedData)
+          setLineData(transformedData);
+          
+        
+      } else {
+        console.error("Invalid Line data structure received:", lineRawData);
+      }
+  
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+  
+    fetchData();
+  }, [selectedName, selectedInterval]);
+  
+  
+
   useEffect(() => {
     if (candlestickData.length === 0 || lineData.length === 0) {
       return;
     }
 
     chartRef.current = createChart(chartContainerRef.current, {
-      width: chartContainerRef.current.clientWidth,
-      height: window.innerHeight - 100,
+      width: chartContainerRef.current.clientWidth-50,
+      height: window.innerHeight -230,
     });
 
     const candlestickSeries = chartRef.current.addCandlestickSeries({
@@ -72,11 +137,8 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
       wickDownColor: "rgba(255, 0, 0, 1)",
     });
 
+    const lineSeries = chartRef.current.addLineSeries({ color: 'blue', lineWidth: 2 });
     candlestickSeries.setData(candlestickData);
-
-
-
-    const lineSeries = chartRef.current.addLineSeries({ color: 'blue', lineWidth: 3 });
     lineSeries.setData(lineData);
 
     const handleResize = () => {
@@ -95,7 +157,6 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
 
   return (
     <div>
-      <div className="stock-name"  style={{ fontWeight: 'bold', marginLeft: '10px' }}>{selectedName}</div>
       <div ref={chartContainerRef} />
     </div>
   );

@@ -5,8 +5,6 @@ const SeriesChart = ({ selectedName, selectedInterval }) => {
   const chartContainerRef = useRef();
 
   const [seriesdata, setSeriesData] = useState([]);
-  const [lineData, setLineData] = useState([]);
-  const [timeValues, setTimeValues] = useState([]);
   const chartOptions = {
     layout: {
       textColor: "black",
@@ -26,10 +24,9 @@ const SeriesChart = ({ selectedName, selectedInterval }) => {
           `http://localhost:8080/get-stock/${stockName}/${interval}`
         );
         const rawData = await response.json();
-        const lineResponse = await fetch(`http://localhost:8080/get-prediction/${stockName}/${interval}`);
+        const lineResponse = await fetch(`http://localhost:8080/get-prediction/${stockName}`);
         const lineRawData = await lineResponse.json();
-        const firstItem = lineRawData[0];
-        const { open, high, low, close, adjclose } = firstItem;
+        
 
         if (Array.isArray(rawData)) {
           const transformedData = rawData.map((item) => {
@@ -41,14 +38,6 @@ const SeriesChart = ({ selectedName, selectedInterval }) => {
             };
           });
           setSeriesData(transformedData);
-          const times = rawData.map((item) => new Date(item.index).toISOString().split("T")[0]);
-          setTimeValues(times);
-
-         const lineData = timeValues.map(time => ({
-           time,
-           value: close
-         }));
-         setLineData(lineData);
 
          
         } else {
@@ -66,9 +55,6 @@ const SeriesChart = ({ selectedName, selectedInterval }) => {
     const chart = createChart(chartContainerRef.current, chartOptions);
     const lineSeries = chart.addLineSeries({ color: "#2962FF" });
     lineSeries.setData(seriesdata);
-
-    const lineSeries2 = chart.addLineSeries({ color: 'gray', lineWidth: 3 });
-    lineSeries2.setData(lineData);
 
     chart.timeScale().fitContent();
 

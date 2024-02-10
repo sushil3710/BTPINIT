@@ -32,7 +32,7 @@ const getAllNames = async (req, res) => {
 
         // Filter out collections to ignore
         const filteredNames = allNames.filter(name => {
-            return !name.endsWith("1day") && !name.endsWith("1week") && !name.endsWith("1month") && !name.endsWith("1year");
+            return !name.endsWith("_predicted");
         });
 
         // Get the search term from the request parameters
@@ -155,8 +155,7 @@ const getStockDataPeriod = async (req, res) => {
 
 
 const getPrediction = async (req, res) => {
-  try {
-
+    try {
       const database = mongoose.connection.db;
       const stockName = req.params.stockName;
       const period = req.params.period;
@@ -164,14 +163,17 @@ const getPrediction = async (req, res) => {
       let stockDataCollection;
       stockDataCollection = database.collection(`${stockName}_predicted`);
       const stockData = await stockDataCollection.find().toArray();
-      res.json(stockData);
   
-  } catch (error) {
+      // Sort the stockData in ascending order based on the key index
+      //stockData.sort((a, b) => a.key - b.key);
+  
+      res.json(stockData);
+    } catch (error) {
       console.error(error);
       // Handle errors and send an appropriate response
       res.status(500).json({ error: 'Internal Server Error' });
-  }
-};
-
+    }
+  };
+  
 
 module.exports = { getAllStockData,getStockData,getStockDataPeriod,getAllNames,getNames,getPrediction};
