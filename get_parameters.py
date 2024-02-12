@@ -9,27 +9,22 @@ def find_arima_parameters(stock_data):
     print(f"Processing {stock_data[0]['ticker']}...")
     
     stock_df = pd.DataFrame(stock_data, columns=['index', 'close'])
-    stock_df = pd.DataFrame(stock_data)
+    #stock_df = pd.DataFrame(stock_data)
     stock_df['index'] = pd.to_datetime(stock_df['index'])
     stock_df.set_index('index', inplace=True)
     stock_df.dropna(inplace=True)
     
     # Adjust parameters as needed
-    model = pm.auto_arima(stock_df['close'], 
-                      m=7,               # frequency of series                      
-                      seasonal=True,      # TRUE if seasonal series
-                      d=None,             # let model determine 'd'
-                      test='adf',         # use adftest to find optimal 'd'
-                      start_p=0, start_q=0, # minimum p and q
-                      max_p=12, max_q=12, # maximum p and q
-                      D=None,             # let model determine 'D'
-                      trace=True,
-                      error_action='ignore',  
-                      suppress_warnings=True, 
-                      stepwise=True)
-    
-    print(model.summary())
-    
+    model = auto_arima(stock_df['close'], start_p=1, start_q=1,
+                        max_p=3, max_q=3, m=7,
+                        start_P=0, seasonal=True,
+                        d=None, D=1, trace=True,
+                        error_action='ignore',  
+                        suppress_warnings=True, 
+                        stepwise=True)
+
+
+
     return {
         'ticker': stock_data[0]['ticker'],
         'p': model.order[0],
@@ -40,6 +35,7 @@ def find_arima_parameters(stock_data):
         'Q': model.seasonal_order[2],
         'm': model.seasonal_order[3]
     }
+
 
 
 if __name__ == '__main__':
