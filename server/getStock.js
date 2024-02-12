@@ -12,7 +12,7 @@ const getAllNames = async (req, res) => {
       const collections = await database.listCollections().toArray();
       const collectionNames = collections
           .map(({ name }) => name)
-          .filter(name => !name.endsWith("1day") && !name.endsWith("1week") && !name.endsWith("1month") && !name.endsWith("1year"));
+          .filter(name => !name.endsWith("_predicted"));
 
       res.json(collectionNames);
   } catch (error) {
@@ -56,13 +56,15 @@ const getAllStockData = async (req, res) => {
     const database = mongoose.connection.db;
     // Get the list of collection names
     const collections = await database.listCollections().toArray();
+    
+    const filteredCollections = collections.filter(({ name }) => !name.endsWith("_predicted"));
 
     // Fetch all documents from each collection
     const allStockData = await Promise.all(
-      collections.map(async ({ name }) => {
+      filteredCollections.map(async ({ name }) => {
         const collection = database.collection(name);
         const data = await collection.find({}).toArray(); // Adjust fields as needed
-        return { data };
+        return { collection: name, data };
       })
     );
 
