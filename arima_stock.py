@@ -121,5 +121,6 @@ for collection_name in db.list_collection_names():
        pred_docs=generate_predictions(stock_data)
        pred_collection_name = f"{collection_name}_predicted"
        pred_collection = db[pred_collection_name]
+       pred_collection.delete_many({})
        pred_collection.insert_many(pred_docs)
 
