@@ -24,28 +24,23 @@ def generate_predictions(stock_data):
     stock_df.set_index('index', inplace=True)
     stock_df.dropna(inplace=True)
     
-    train=stock_df[:-100]
+    train=stock_df[:-30]
     train_resampled = train.resample('D').mean()
     train_filled = train_resampled.interpolate(method='linear')
-    
-    print(train_filled)
-    #autocorrelation = pd.Series(train['close']).autocorr()
-    # Plot autocorrelation
-    #plot_acf(train['close'])
-    #plt.show()
-    #print("Autocorrelation:", autocorrelation)
-    test = stock_df.iloc[-101:]
+    #print(train_filled)
+    test = stock_df.iloc[-31:]
 
     model = pm.auto_arima(train_filled['close'], 
-                      m=30,             # frequency of series                      
+                      m=7,             # frequency of series                      
                       seasonal=True,      # TRUE if seasonal series
-                      d=None,             # let model determine 'd'
+                      d=1,             # let model determine 'd'
                       test='adf',         # use adftest to find optimal 'd'
                       start_p=0, start_q=0, # minimum p and q
-                      max_p=50, max_q=50, # maximum p and q
+                      max_p=5, max_q=5, # maximum p and q
                       D=1,               # let model determine 'D'
                       trace=True,
                       max_d=2,
+                      max_P=2,max_D=1,max_Q=2,
                       error_action='ignore',  
                       suppress_warnings=True, 
                       stepwise=True)
@@ -57,10 +52,8 @@ def generate_predictions(stock_data):
     D=model.seasonal_order[1]
     Q=model.seasonal_order[2]
     m=model.seasonal_order[3]
-    print("M value: ",m)
+    #print("M value: ",m)
     
-    
-    #model = ARIMA(train['close'], order=(p, d, q),freq='D',seasonal_order=(P,D,Q,m))
     model = ARIMA(train_filled['close'], order=(p, d, q), freq='D', seasonal_order=(P, D, Q, m))
     
     with warnings.catch_warnings():
@@ -79,33 +72,33 @@ def generate_predictions(stock_data):
         pred_documents.append(pred_doc)
     
 
-    pdf = pd.DataFrame(pred_documents)
-    print(pdf)    
-    plt.figure(figsize=(10, 6))
-    plt.plot(stock_df.index, stock_df['close'], label='Actual Close Values')
-    plt.plot(test.index, pred, label='Predicted Close Values', color='red')
-    plt.xlabel('Date')
-    plt.ylabel('Close Value')
-    plt.title('Actual vs Predicted Close Values')
-    plt.legend()
-    plt.show()
+    #pdf = pd.DataFrame(pred_documents)
+    #print(pdf)    
+    # plt.figure(figsize=(10, 6))
+    # plt.plot(stock_df.index, stock_df['close'], label='Actual Close Values')
+    # plt.plot(test.index, pred, label='Predicted Close Values', color='red')
+    # plt.xlabel('Date')
+    # plt.ylabel('Close Value')
+    # plt.title('Actual vs Predicted Close Values')
+    # plt.legend()
+    # plt.show()
 
     return pred_documents
 
 
 for collection_name in db.list_collection_names():
-       if collection_name != "SUZLON.NS":
-        continue
+    #    if collection_name != "RELIANCE.NS":
+    #     continue
        
        collection = db[collection_name]
     
        # Get current date
        current_date = datetime.now()
-       start_date = current_date - timedelta(days=400)
+       start_date = current_date - timedelta(days=300)
        query = {'index': {'$gte': start_date}}
        stock_data = list(collection.find(query))
 
-       if not (stock_data):
+       if len(stock_data) < 50:
         continue  # Skip to the next collection
 
        pred_docs=generate_predictions(stock_data)

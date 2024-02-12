@@ -5,36 +5,27 @@ from datetime import datetime, timedelta
 from pymongo import MongoClient
 
 # Function to find ARIMA parameters for a single stock
-def find_arima_parameters(stock_data):
-    print(f"Processing {stock_data[0]['ticker']}...")
+# def find_arima_parameters(stock_data):
+#     print(f"Processing {stock_data[0]['ticker']}...")
     
-    stock_df = pd.DataFrame(stock_data, columns=['index', 'close'])
-    #stock_df = pd.DataFrame(stock_data)
-    stock_df['index'] = pd.to_datetime(stock_df['index'])
-    stock_df.set_index('index', inplace=True)
-    stock_df.dropna(inplace=True)
+#     stock_df = pd.DataFrame(stock_data, columns=['index', 'close'])
+#     #stock_df = pd.DataFrame(stock_data)
+#     stock_df['index'] = pd.to_datetime(stock_df['index'])
+#     stock_df.set_index('index', inplace=True)
+#     stock_df.dropna(inplace=True)
     
-    # Adjust parameters as needed
-    model = auto_arima(stock_df['close'], start_p=1, start_q=1,
-                        max_p=3, max_q=3, m=7,
-                        start_P=0, seasonal=True,
-                        d=None, D=1, trace=True,
-                        error_action='ignore',  
-                        suppress_warnings=True, 
-                        stepwise=True)
 
 
-
-    return {
-        'ticker': stock_data[0]['ticker'],
-        'p': model.order[0],
-        'd': model.order[1],
-        'q': model.order[2],
-        'P': model.seasonal_order[0],
-        'D': model.seasonal_order[1],
-        'Q': model.seasonal_order[2],
-        'm': model.seasonal_order[3]
-    }
+#     return {
+#         'ticker': stock_data[0]['ticker'],
+#         'p': model.order[0],
+#         'd': model.order[1],
+#         'q': model.order[2],
+#         'P': model.seasonal_order[0],
+#         'D': model.seasonal_order[1],
+#         'Q': model.seasonal_order[2],
+#         'm': model.seasonal_order[3]
+#     }
 
 
 
@@ -70,7 +61,7 @@ if __name__ == '__main__':
             continue
         
         # Find ARIMA parameters
-        parameters = find_arima_parameters(stock_data)
+        #parameters = find_arima_parameters(stock_data)
         print(parameters)
         
         # Insert parameters into the Parameters collection
