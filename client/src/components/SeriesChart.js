@@ -3,8 +3,9 @@ import { createChart } from "lightweight-charts";
 
 const SeriesChart = ({ selectedName, selectedInterval }) => {
   const chartContainerRef = useRef();
-
   const [seriesdata, setSeriesData] = useState([]);
+  const [lineData, setLineData] = useState([]);
+
   const chartOptions = {
     layout: {
       textColor: "black",
@@ -17,17 +18,17 @@ const SeriesChart = ({ selectedName, selectedInterval }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        let stockName = selectedName;
-        let interval = selectedInterval;
+        const stockName = selectedName;
+        const interval = selectedInterval;
 
         const response = await fetch(
           `http://localhost:8080/get-stock/${stockName}/${interval}`
         );
         const rawData = await response.json();
+
         const lineResponse = await fetch(`http://localhost:8080/get-prediction/${stockName}`);
         const lineRawData = await lineResponse.json();
         
-
         if (Array.isArray(rawData)) {
           const transformedData = rawData.map((item) => {
             const value = typeof item.close === "number" ? item.close : 0;
@@ -39,22 +40,33 @@ const SeriesChart = ({ selectedName, selectedInterval }) => {
           });
           setSeriesData(transformedData);
 
-         
+          if (Array.isArray(lineRawData)) {
+            const transformedLineData = lineRawData.map((item) => ({
+              time: new Date(item.index).toISOString().split("T")[0],
+              value: typeof item.close === "number" ? item.close : 0
+            }));
+            transformedLineData.sort((a, b) => new Date(a.time) - new Date(b.time));
+            setLineData(transformedLineData);
+          } else {
+            console.error("Invalid data structure received for line data:", lineRawData);
+          }
         } else {
-          console.error("Invalid data structure received:", rawData);
+          console.error("Invalid data structure received for series data:", rawData);
         }
       } catch (error) {
-        console.error("Error fetching candlestick data:", error);
+        console.error("Error fetching data:", error);
       }
     };
     fetchData();
-  }, [selectedName, selectedInterval]); // Include selectedName and selectedInterval in the dependency array
+  }, [selectedName, selectedInterval]); 
 
   useEffect(() => {
-    // Check if candlestickData is not empty before rendering the chart
     const chart = createChart(chartContainerRef.current, chartOptions);
-    const lineSeries = chart.addLineSeries({ color: "#2962FF" });
+    const lineSeries = chart.addLineSeries({ color: "blue", lineWidth: 2 });
     lineSeries.setData(seriesdata);
+
+    const lineSeries_pred = chart.addLineSeries({ color: 'green', lineWidth: 3 });
+    lineSeries_pred.setData(lineData);
 
     chart.timeScale().fitContent();
 
@@ -68,7 +80,7 @@ const SeriesChart = ({ selectedName, selectedInterval }) => {
       window.removeEventListener("resize", handleResize);
       chart.remove();
     };
-  }, [seriesdata]);
+  }, [seriesdata, lineData]);
 
   return <div ref={chartContainerRef} />;
 };

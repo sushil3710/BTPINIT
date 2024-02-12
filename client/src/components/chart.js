@@ -59,8 +59,7 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
 
         const response = await fetch(`http://localhost:8080/get-stock/${stockName}/${interval}`);
         const rawData = await response.json();
-        const lineResponse = await fetch(`http://localhost:8080/get-prediction/${stockName}`);
-        const lineRawData = await lineResponse.json();
+        
       
         if (Array.isArray(rawData)) {
           const transformedData = rawData.map((item) => ({
