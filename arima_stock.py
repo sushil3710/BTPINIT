@@ -26,28 +26,18 @@ def generate_predictions(stock_data):
     
     train=stock_df[:-100]
     train_resampled = train.resample('D').mean()
-    train_ffill = train_resampled.ffill()
-    train_bfill = train_resampled.bfill()
-    # Interpolate any remaining missing values
-    train_filled = (train_ffill + train_bfill) / 2
-    
-    
+    train_filled = train_resampled.interpolate(method='linear')
     
     print(train_filled)
     #autocorrelation = pd.Series(train['close']).autocorr()
-
     # Plot autocorrelation
     #plot_acf(train['close'])
     #plt.show()
     #print("Autocorrelation:", autocorrelation)
     test = stock_df.iloc[-101:]
-    # test_resampled = test.resample('D').ffill()
-    # test_filled= test_resampled[test.index[0]:test.index[-1]]
-    
-    
-    
+
     model = pm.auto_arima(train_filled['close'], 
-                      m=6,             # frequency of series                      
+                      m=30,             # frequency of series                      
                       seasonal=True,      # TRUE if seasonal series
                       d=None,             # let model determine 'd'
                       test='adf',         # use adftest to find optimal 'd'
