@@ -6,6 +6,7 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
   const chartRef = useRef(null);
   const [candlestickData, setCandlestickData] = useState([]);
   const [lineData, setLineData] = useState([]);
+  const [lineDataBoxJen, setLineDataBoxJen] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -91,6 +92,10 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
         const lineResponse = await fetch(`http://localhost:8080/get-prediction/${stockName}`);
         const lineRawData = await lineResponse.json();
         lineRawData.sort((a, b) => a.index - b.index);
+
+        const lineResponseBoxJen = await fetch(`http://localhost:8080/get-prediction-BoxJen/${stockName}`);
+        const lineRawDataBoxJen = await lineResponseBoxJen.json();
+        lineRawDataBoxJen.sort((a, b) => a.index - b.index);
   
         if (Array.isArray(lineRawData)) {
           const transformedData = lineRawData.map((item) => ({
@@ -99,13 +104,26 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
           }));
           
           transformedData.sort((a, b) => new Date(a.time) - new Date(b.time));
-          //console.log(transformedData)
           setLineData(transformedData);
           
         
       } else {
         console.error("Invalid Line data structure received:", lineRawData);
       }
+
+      if (Array.isArray(lineRawDataBoxJen)) {
+        const transformedData = lineRawDataBoxJen.map((item) => ({
+          time: new Date(item.index).toISOString().split("T")[0],
+          value: typeof item.close === "number" ? item.close : 0
+        }));
+        
+        transformedData.sort((a, b) => new Date(a.time) - new Date(b.time));
+        setLineDataBoxJen(transformedData);
+        
+      
+    } else {
+      console.error("Invalid Line data structure received:", lineRawDataBoxJen);
+    }
   
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -118,7 +136,7 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
   
 
   useEffect(() => {
-    if (candlestickData.length === 0 || lineData.length === 0) {
+    if (candlestickData.length === 0) {
       return;
     }
 
@@ -140,6 +158,9 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
     candlestickSeries.setData(candlestickData);
     lineSeries.setData(lineData);
 
+    const lineSeriesBoxJen = chartRef.current.addLineSeries({ color: 'brown', lineWidth: 2 });
+    lineSeriesBoxJen.setData(lineDataBoxJen);
+
     const handleResize = () => {
       chartRef.current.applyOptions({
         width: chartContainerRef.current.clientWidth,
@@ -152,7 +173,7 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
       window.removeEventListener("resize", handleResize);
       chartRef.current.remove();
     };
-  }, [candlestickData, lineData]);
+  }, [candlestickData, lineData,lineDataBoxJen]);
 
   return (
     <div>

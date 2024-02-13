@@ -20,6 +20,7 @@ app.get("/get-all-stock", getStock.getAllStockData);
 app.get("/get-stock/:stockName", getStock.getStockData);
 app.get("/get-stock/:stockName/:period", getStock.getStockDataPeriod);
 app.get("/get-prediction/:stockName", getStock.getPrediction);
+app.get("/get-prediction-BoxJen/:stockName", getStock.getPredictionBoxJen);
 
 
 app.listen(PORT, () => {

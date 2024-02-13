@@ -56,147 +56,131 @@ def ad_fuller_test(ts):
     dfoutput = pd.Series(dftest[0:4], index=['Test Statistic', 'p-value','#Lags Used','Number of Observations Used'])
     for key,value in dftest[4].items():
         dfoutput['Critical Value (%s)'%key] = value
-        print(dfoutput)
+        #print(dfoutput)
 
 
-
-def auto_arima(param_max=2,series=pd.Series(),verbose=True):
-    # Define the p, d and q parameters to take any value 
-    # between 0 and param_max
-    p  = q = range(0, param_max+1)
-    d=range(0,2)
-    print('p=', p)
-    print('d=', d)
-    print('q=', q)
-    # Generate all different combinations of seasonal p, d and q triplets
-    pdq = [(x[0], x[1], x[2]) for x in list(itertools.product(p, d, q))]
+def auto_arima(param_max=1, series=pd.Series(), seasonal_param_max=2, m=7, verbose=True):
+    # Define the p, d, and q parameters to take any value between 0 and param_max
+    p = q = range(0, param_max+1)
+    d = 1
     
-    model_resuls = []
+    # Define the seasonal P, D, and Q parameters to take any value between 0 and seasonal_param_max
+    P  = range(1, seasonal_param_max+1)
+    Q  = range(0, seasonal_param_max+1)
+    D = 1
+    
+    #Combinations:  d=0 D=1 m=7(Not good, Multi curve Repeations in a line),  d=1 D=1 m=7(Not good, simple increasing line), d=0 D=1 m=30(Not good Results,Time Exceeds), d=1 D=1 m=30(Time Limit Exceeds), d=1 D=0 m=30(no peaks and changes as no Seasonal Differencing) 
+    #d=1 D=1 m=30 p,q,P,Q=range(1,3)  (Graph better but not as expected),
+    #
+    #cominations:(Keep Non seasonale Parameters constant 0,1,2): 
+    #cominations:(Only non Sea): 
+    
+    
+    # print('p=', p)
+    # print('d=', d)
+    # print('q=', q)
+    # print('P=', P)
+    # print('D=', D)
+    # print('Q=', Q)
+    # print('m=', m)
+    
+    # Generate all different combinations of p, d, and q triplets
+    pdq = [(x[0], d, x[1]) for x in list(itertools.product(p, q))]
+    seasonal_pdq = [(x[0], D, x[1], m) for x in list(itertools.product(P, Q))]
+    
+    model_results = []
     best_model = {}
-    min_aic = 10000000
+    min_aic = float('inf')
     
-    for param in pdq:
-        try:
-            mod = sm.tsa.ARIMA(series, order=param)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", ConvergenceWarning)
+        for param in pdq:
+          for param_seasonal in seasonal_pdq:
+            try:
+                mod = sm.tsa.ARIMA(series, order=param, freq='D',seasonal_order=param_seasonal)
+                results = mod.fit()
 
-            results = mod.fit()
-            
-            if verbose:
-                print('ARIMA{}- AIC:{}'.format(param, results.aic))
-            model_resuls.append({'aic':results.aic,
-                                 'params':param,
-                                 'model_obj':results})
-            if min_aic>results.aic:
-                best_model={'aic':results.aic,
-                            'params':param,
-                            'model_obj':results}
-                min_aic = results.aic
-        except Exception as ex:
-            print(ex)
+                
+                
+                if verbose:
+                    print('ARIMA{}{} - AIC:{}'.format(param, param_seasonal, results.aic))
+                    model_results.append({'aic': results.aic,
+                                      'params': {'order': param, 'seasonal_order': param_seasonal},
+                                      'model_obj': results})
+
+                
+                if results.aic < min_aic:
+                    best_model = {'aic': results.aic,
+                                  'params': {'order': param, 'seasonal_order': param_seasonal},
+                                  'model_obj': results}
+                    min_aic = results.aic
+            except Exception as ex:
+                print(ex)
+                import traceback
+                traceback.print_exc()
+                
     if verbose:
-        print("Best Model params:{} AIC:{}".format(best_model['params'],
-              best_model['aic']))  
-        
-    return best_model, model_resuls
-
-
-def arima_gridsearch_cv(series, cv_splits=2,verbose=True,show_plots=True):
-    # prepare train-test split object
-    tscv = TimeSeriesSplit(n_splits=cv_splits)
+        print("Best Model params:{} AIC:{}".format(best_model['params'], best_model['aic']))  
     
-    # initialize variables
-    splits = []
-    best_models = []
-    all_models = []
-    i = 1
+    return best_model, model_results 
     
-    # loop through each CV split
-    for train_index, test_index in tscv.split(series):
-        print("*"*20)
-        print("Iteration {} of {}".format(i,cv_splits))
-        i = i + 1
-        
-        # print train and test indices
-        if verbose:
-            print("TRAIN:", train_index, "TEST:", test_index)
-        splits.append({'train':train_index,'test':test_index})
-        
-        # split train and test sets
-        train_series = series.iloc[train_index]
-        test_series = series.iloc[test_index]
-        
-        print("Train shape:{}, Test shape:{}".format(train_series.shape,
-              test_series.shape))
-        
-        # perform auto arima
-        _best_model, _all_models = auto_arima(series=train_series)
-        best_models.append(_best_model)
-        all_models.append(_all_models)
-        
-        # display summary for best fitting model
-        if verbose:
-            print(_best_model['model_obj'].summary())
-        results = _best_model['model_obj']
-       # plt.figure(figsize=(15, 9))
-        # if show_plots:
-        #     # show residual plots
-        #     residuals = pd.DataFrame(results.resid)
-        #     #plt.figure(figsize=(15, 9))
-        #     residuals.plot(figsize=(14, 6))
-        #     plt.title('Residual Plot')
-        #     plt.show()
-        #     #plt.figure(figsize=(15, 9))
-        #     residuals.plot(kind='kde', figsize=(14, 6))
-        #     plt.title('KDE Plot')
-        #     plt.show()
-        #     print(residuals.describe())
-        
-        #     # show forecast plot
-        #     fig, ax = plt.subplots(figsize=(18, 4))
-        #     fig.autofmt_xdate()
-        #     ax = train_series.plot(ax=ax)
-        #     test_series.plot(ax=ax)
-        #     fig = results.plot_predict(test_series.index.min(), 
-        #                                test_series.index.max(), 
-        #                                dynamic=True,ax=ax,
-        #                                plot_insample=False)
-        #     plt.title('Forecast Plot ')
-        #     plt.legend()
-        #     plt.show()
+def generate_predictions(train_filled,test,ticker,params):
     
-    return {'cv_split_index':splits,'all_models':all_models,'best_models':best_models}
+    p=params['order'][0]
+    d=params['order'][1]
+    q=params['order'][2]
+    P=params['seasonal_order'][0]
+    D=params['seasonal_order'][1]
+    Q=params['seasonal_order'][2]
+    m=params['seasonal_order'][3]
     
     
+    model = ARIMA(train_filled['close'], order=(p, d, q), freq='D', seasonal_order=(P, D, Q, m))
 
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", ConvergenceWarning)
 
-
+    pred = model.fit().forecast(steps=test.shape[0])
+    pred_documents = []
+    for date, close_pred in zip(test.index, pred):
+        pred_doc = {
+            'index': date.strftime("%Y-%m-%d"),  # Convert datetime to string
+            'close': close_pred,
+            'ticker': ticker
+        }
+        pred_documents.append(pred_doc)
+    return pred_documents    
 
 if __name__ == '__main__':
     for collection_name in db.list_collection_names():
-       if collection_name != "RELIANCE.NS":
-           continue
+    #    if collection_name != "MUFIN.NS":
+    #        continue
        
        collection = db[collection_name]
-
        current_date = datetime.now()
-       start_date = current_date - timedelta(days=300)
+       start_date = current_date - timedelta(days=400)
        query = {'index': {'$gte': start_date}}
        stock_data = list(collection.find(query))
+       
+       if len(stock_data) < 50:
+        continue  # Skip to the next collection
        
        stock_df = pd.DataFrame(stock_data, columns=['index', 'close'])
        stock_df['index'] = pd.to_datetime(stock_df['index'])
        stock_df.set_index('index', inplace=True)
        stock_df.dropna(inplace=True)
+       
+       train_size = int(len(stock_data) * 4/5)  
+       train=stock_df[:train_size]
+       train_resampled = train.resample('D').mean()
+       train_filled = train_resampled.interpolate(method='linear')
+       test = stock_df.iloc[-(len(stock_data)-train_size+1):]
 
-       stock_resample = stock_df.resample('D').mean()
-       new_df = stock_resample.interpolate(method='linear')
-       
+       new_df = train_filled
        log_series = np.log(new_df.close)
-       
        ad_fuller_test(log_series)
        #plot_rolling_stats(log_series)
-       
-       
+    
        log_series_shift = log_series - log_series.shift()
        log_series_shift = log_series_shift[~np.isnan(log_series_shift)]
        
@@ -205,6 +189,20 @@ if __name__ == '__main__':
        
        new_df['log_series'] = log_series
        new_df['log_series_shift'] = log_series_shift
-       print(new_df)
+       #print(new_df)
        # cross validate 
-       results_dict = arima_gridsearch_cv(new_df.log_series,cv_splits=5)
+       
+       #Here log series is passed to get the parameters
+       print(f"Processing {stock_data[0]['ticker']}...")
+       best_model, all_models = auto_arima(series=new_df.log_series)
+       #best_model, all_models = auto_arima(series=new_df.close)
+       
+       params = best_model['params']
+       pred_docs=generate_predictions(train_filled,test,stock_data[0]['ticker'],params)
+       
+       pred_collection_name = f"{collection_name}_predicted_BoxJen"
+       pred_collection = db[pred_collection_name]
+       pred_collection.delete_many({})
+       pred_collection.insert_many(pred_docs)
+       
+       

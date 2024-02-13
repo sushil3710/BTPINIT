@@ -23,7 +23,7 @@ def fetch_and_store_stocks(stock_names):
     # Loop through each stock name and fetch historical data
     for stock_name in stock_names:
         try:
-            historical_data=get_data(stock_name+".NS", start_date = '01/01/2010', end_date=end_d , index_as_date = True, interval = '1d')
+            historical_data=get_data(stock_name+".NS", start_date = '01/01/2018', end_date=end_d , index_as_date = True, interval = '1d')
             #historical_data=get_data(stock_name)
             # historical_data = nse.get_historical(stock_name, start_date, end_date)
             

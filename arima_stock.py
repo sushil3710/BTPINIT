@@ -24,11 +24,12 @@ def generate_predictions(stock_data):
     stock_df.set_index('index', inplace=True)
     stock_df.dropna(inplace=True)
     
-    train=stock_df[:-30]
+    train_size = int(len(stock_data) * 4/5)  
+    train=stock_df[:train_size]
     train_resampled = train.resample('D').mean()
     train_filled = train_resampled.interpolate(method='linear')
     #print(train_filled)
-    test = stock_df.iloc[-31:]
+    test = stock_df.iloc[-(len(stock_data)-train_size+1):]
 
     model = pm.auto_arima(train_filled['close'], 
                       m=7,             # frequency of series                      
@@ -36,11 +37,12 @@ def generate_predictions(stock_data):
                       d=1,             # let model determine 'd'
                       test='adf',         # use adftest to find optimal 'd'
                       start_p=0, start_q=0, # minimum p and q
-                      max_p=5, max_q=5, # maximum p and q
+                      max_p=2, max_q=2, # maximum p and q
                       D=1,               # let model determine 'D'
                       trace=True,
+                      start_P=0,start_Q=0,
                       max_d=2,
-                      max_P=2,max_D=1,max_Q=2,
+                      max_P=2,max_Q=2,
                       error_action='ignore',  
                       suppress_warnings=True, 
                       stepwise=True)
@@ -70,37 +72,23 @@ def generate_predictions(stock_data):
             'ticker': stock_data[0]['ticker']
         }
         pred_documents.append(pred_doc)
-    
-
-    #pdf = pd.DataFrame(pred_documents)
-    #print(pdf)    
-    # plt.figure(figsize=(10, 6))
-    # plt.plot(stock_df.index, stock_df['close'], label='Actual Close Values')
-    # plt.plot(test.index, pred, label='Predicted Close Values', color='red')
-    # plt.xlabel('Date')
-    # plt.ylabel('Close Value')
-    # plt.title('Actual vs Predicted Close Values')
-    # plt.legend()
-    # plt.show()
 
     return pred_documents
 
 
 for collection_name in db.list_collection_names():
-    #    if collection_name != "RELIANCE.NS":
+    #    if collection_name != "MUFIN.NS":
     #     continue
        
        collection = db[collection_name]
-    
        # Get current date
        current_date = datetime.now()
-       start_date = current_date - timedelta(days=300)
+       start_date = current_date - timedelta(days=400)
        query = {'index': {'$gte': start_date}}
        stock_data = list(collection.find(query))
 
        if len(stock_data) < 50:
         continue  # Skip to the next collection
-
        pred_docs=generate_predictions(stock_data)
        pred_collection_name = f"{collection_name}_predicted"
        pred_collection = db[pred_collection_name]
