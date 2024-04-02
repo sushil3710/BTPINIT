@@ -1,4 +1,3 @@
-
 from datetime import datetime, timedelta
 import pandas as pd
 from pymongo import MongoClient
@@ -10,13 +9,6 @@ db = client['stocks']
 
 # Function to fetch stock data and store in MongoDB
 def fetch_and_store_stocks(stock_names):
-   # nse = Nse()
-
-    # Define the time period for historical data (e.g., last 30 days)
-    # end_date = datetime.now()
-    # print(end_date)
-    # start_date = end_date - timedelta(days=30)
-    historical_data_dict = {}
     today = datetime.today()
     end_d = today.strftime('%m/%d/%Y')
 
@@ -40,12 +32,6 @@ def fetch_and_store_stocks(stock_names):
                 print(f"Data for {stock_name} stored successfully.")
         except Exception as e:
             print(f"Stock not Registered {stock_name}: {e}")
-
-# def get_live_price(symbol):
-#     stock = yf.Ticker(symbol)
-#     live_price = stock.history(period='1d')['Close'].iloc[-1]
-#     return live_price
-            
 
 if __name__ == "__main__":
     excel_path = 'MCAP31122023.xlsx'

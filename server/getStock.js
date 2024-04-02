@@ -12,7 +12,7 @@ const getAllNames = async (req, res) => {
       const collections = await database.listCollections().toArray();
       const collectionNames = collections
           .map(({ name }) => name)
-          .filter(name => !name.endsWith("_predicted"));
+          .filter(name => !name.endsWith("_predicted") && !name.endsWith("BoxJen"));
 
       res.json(collectionNames);
   } catch (error) {
@@ -22,32 +22,34 @@ const getAllNames = async (req, res) => {
 };
 
 
-  const getNames = async (req, res) => {
-    try {
-        const database = mongoose.connection.db;
 
-        // Get the list of collection names
-        const collections = await database.listCollections().toArray();
-        const allNames = collections.map(({ name }) => name);
+const getNames = async (req, res) => {
+  try {
+      const database = mongoose.connection.db;
 
-        // Filter out collections to ignore
-        const filteredNames = allNames.filter(name => {
-            return !name.endsWith("_predicted");
-        });
+      // Get the list of collection names
+      const collections = await database.listCollections().toArray();
+      const allNames = collections.map(({ name }) => name);
 
-        // Get the search term from the request parameters
-        const searchTerm = req.params.name;
+      // Filter out collections to ignore
+      const filteredNames = allNames.filter(name => {
+          return !name.endsWith("_predicted") && !name.endsWith("BoxJen");
+      });
 
-        // Filter names based on the search term
-        const matchingNames = filteredNames.filter(name => name.includes(searchTerm));
+      // Get the search term from the request parameters
+      const searchTerm = req.params.name;
 
-        res.json(matchingNames);
+      // Filter names based on the search term
+      const matchingNames = filteredNames.filter(name => name.includes(searchTerm));
 
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
+      res.json(matchingNames);
+
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
+
 
 
 const getAllStockData = async (req, res) => {
@@ -57,7 +59,7 @@ const getAllStockData = async (req, res) => {
     // Get the list of collection names
     const collections = await database.listCollections().toArray();
     
-    const filteredCollections = collections.filter(({ name }) => !name.endsWith("_predicted"));
+    const filteredCollections = collections.filter(({ name }) => !name.endsWith("_predicted") && !name.endsWith("BoxJen"));
 
     // Fetch all documents from each collection
     const allStockData = await Promise.all(
@@ -75,6 +77,7 @@ const getAllStockData = async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
 
 
 const getStockData = async (req, res) => {
@@ -178,14 +181,14 @@ const getPrediction = async (req, res) => {
   };
   
 
-  const getPredictionBoxJen = async (req, res) => {
+  const getPredictionLSTM = async (req, res) => {
     try {
       const database = mongoose.connection.db;
       const stockName = req.params.stockName;
       const period = req.params.period;
       
       let stockDataCollection;
-      stockDataCollection = database.collection(`${stockName}_predicted_BoxJen`);
+      stockDataCollection = database.collection(`${stockName}_LSTM_predicted`);
       const stockData = await stockDataCollection.find().toArray();
   
       // Sort the stockData in ascending order based on the key index
@@ -199,4 +202,4 @@ const getPrediction = async (req, res) => {
     }
   };
 
-module.exports = { getAllStockData,getStockData,getStockDataPeriod,getAllNames,getNames,getPrediction,getPredictionBoxJen};
+module.exports = { getAllStockData,getStockData,getStockDataPeriod,getAllNames,getNames,getPrediction,getPredictionLSTM};

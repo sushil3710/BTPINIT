@@ -32,16 +32,15 @@ def generate_predictions(stock_data):
     test = stock_df.iloc[-(len(stock_data)-train_size+1):]
 
     model = pm.auto_arima(train_filled['close'], 
-                      m=7,             # frequency of series                      
-                      seasonal=True,      # TRUE if seasonal series
-                      d=1,             # let model determine 'd'
-                      test='adf',         # use adftest to find optimal 'd'
-                      start_p=0, start_q=0, # minimum p and q
-                      max_p=2, max_q=2, # maximum p and q
-                      D=1,               # let model determine 'D'
+                      m=7,                    # frequency of series                      
+                      seasonal=True,           # TRUE if seasonal series
+                      d=1,                     # let model determine 'd'
+                      test='adf',              # use adftest to find optimal 'd'
+                      start_p=0, start_q=0,    # minimum p and q
+                      max_p=2, max_q=2,        # maximum p and q
+                      D=1,                     # let model determine 'D'
                       trace=True,
                       start_P=0,start_Q=0,
-                      max_d=2,
                       max_P=2,max_Q=2,
                       error_action='ignore',  
                       suppress_warnings=True, 
@@ -54,7 +53,6 @@ def generate_predictions(stock_data):
     D=model.seasonal_order[1]
     Q=model.seasonal_order[2]
     m=model.seasonal_order[3]
-    #print("M value: ",m)
     
     model = ARIMA(train_filled['close'], order=(p, d, q), freq='D', seasonal_order=(P, D, Q, m))
     
@@ -77,8 +75,7 @@ def generate_predictions(stock_data):
 
 
 for collection_name in db.list_collection_names():
-    #    if collection_name != "MUFIN.NS":
-    #     continue
+
        
        collection = db[collection_name]
        # Get current date

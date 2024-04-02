@@ -6,7 +6,7 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
   const chartRef = useRef(null);
   const [candlestickData, setCandlestickData] = useState([]);
   const [lineData, setLineData] = useState([]);
-  const [lineDataBoxJen, setLineDataBoxJen] = useState([]);
+  const [lineDataLSTM, setLineDataLSTM] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -93,7 +93,7 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
         const lineRawData = await lineResponse.json();
         lineRawData.sort((a, b) => a.index - b.index);
 
-        const lineResponseBoxJen = await fetch(`http://localhost:8080/get-prediction-BoxJen/${stockName}`);
+        const lineResponseBoxJen = await fetch(`http://localhost:8080/get-prediction-LSTM/${stockName}`);
         const lineRawDataBoxJen = await lineResponseBoxJen.json();
         lineRawDataBoxJen.sort((a, b) => a.index - b.index);
   
@@ -118,7 +118,7 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
         }));
         
         transformedData.sort((a, b) => new Date(a.time) - new Date(b.time));
-        setLineDataBoxJen(transformedData);
+        setLineDataLSTM(transformedData);
         
       
     } else {
@@ -154,12 +154,12 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
       wickDownColor: "rgba(255, 0, 0, 1)",
     });
 
-    const lineSeries = chartRef.current.addLineSeries({ color: 'blue', lineWidth: 2 });
+    //const lineSeries = chartRef.current.addLineSeries({ color: 'brown', lineWidth: 2 });
     candlestickSeries.setData(candlestickData);
-    lineSeries.setData(lineData);
+    //lineSeries.setData(lineData);
 
-    const lineSeriesBoxJen = chartRef.current.addLineSeries({ color: 'brown', lineWidth: 2 });
-    lineSeriesBoxJen.setData(lineDataBoxJen);
+    const lineSeriesLSTM = chartRef.current.addLineSeries({ color: 'blue', lineWidth: 2 });
+    lineSeriesLSTM.setData(lineDataLSTM);
 
     const handleResize = () => {
       chartRef.current.applyOptions({
@@ -173,7 +173,7 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
       window.removeEventListener("resize", handleResize);
       chartRef.current.remove();
     };
-  }, [candlestickData, lineData,lineDataBoxJen]);
+  }, [candlestickData, lineData,lineDataLSTM]);
 
   return (
     <div>

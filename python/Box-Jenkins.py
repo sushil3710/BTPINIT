@@ -59,13 +59,41 @@ def ad_fuller_test(ts):
         #print(dfoutput)
 
 
-def auto_arima(param_max=1, series=pd.Series(), seasonal_param_max=2, m=7, verbose=True):
+
+def generate_predictions(train_filled,test,ticker,params):
+    
+    p=params['order'][0]
+    d=params['order'][1]
+    q=params['order'][2]
+    P=params['seasonal_order'][0]
+    D=params['seasonal_order'][1]
+    Q=params['seasonal_order'][2]
+    m=params['seasonal_order'][3]
+    
+    
+    model = ARIMA(train_filled['close'], order=(p, d, q), freq='D', seasonal_order=(P, D, Q, m))
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", ConvergenceWarning)
+
+    pred = model.fit().forecast(steps=test.shape[0])
+    pred_documents = []
+    for date, close_pred in zip(test.index, pred):
+        pred_doc = {
+            'index': date.strftime("%Y-%m-%d"),  # Convert datetime to string
+            'close': close_pred,
+            'ticker': ticker
+        }
+        pred_documents.append(pred_doc)
+    return pred_documents    
+
+def auto_arima(param_max=1, series=pd.Series(), seasonal_param_max=1, m=7, verbose=True):
     # Define the p, d, and q parameters to take any value between 0 and param_max
     p = q = range(0, param_max+1)
     d = 1
     
     # Define the seasonal P, D, and Q parameters to take any value between 0 and seasonal_param_max
-    P  = range(1, seasonal_param_max+1)
+    P  = range(0, seasonal_param_max+1)
     Q  = range(0, seasonal_param_max+1)
     D = 1
     
@@ -124,37 +152,11 @@ def auto_arima(param_max=1, series=pd.Series(), seasonal_param_max=2, m=7, verbo
     
     return best_model, model_results 
     
-def generate_predictions(train_filled,test,ticker,params):
-    
-    p=params['order'][0]
-    d=params['order'][1]
-    q=params['order'][2]
-    P=params['seasonal_order'][0]
-    D=params['seasonal_order'][1]
-    Q=params['seasonal_order'][2]
-    m=params['seasonal_order'][3]
-    
-    
-    model = ARIMA(train_filled['close'], order=(p, d, q), freq='D', seasonal_order=(P, D, Q, m))
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", ConvergenceWarning)
-
-    pred = model.fit().forecast(steps=test.shape[0])
-    pred_documents = []
-    for date, close_pred in zip(test.index, pred):
-        pred_doc = {
-            'index': date.strftime("%Y-%m-%d"),  # Convert datetime to string
-            'close': close_pred,
-            'ticker': ticker
-        }
-        pred_documents.append(pred_doc)
-    return pred_documents    
 
 if __name__ == '__main__':
     for collection_name in db.list_collection_names():
-    #    if collection_name != "MUFIN.NS":
-    #        continue
+       if collection_name != "BAJAJELEC.NS":
+           continue
        
        collection = db[collection_name]
        current_date = datetime.now()
@@ -178,13 +180,13 @@ if __name__ == '__main__':
 
        new_df = train_filled
        log_series = np.log(new_df.close)
-       ad_fuller_test(log_series)
+       #ad_fuller_test(log_series)
        #plot_rolling_stats(log_series)
     
        log_series_shift = log_series - log_series.shift()
        log_series_shift = log_series_shift[~np.isnan(log_series_shift)]
        
-       ad_fuller_test(log_series_shift)
+       #ad_fuller_test(log_series_shift)
        #plot_rolling_stats(log_series_shift)
        
        new_df['log_series'] = log_series
