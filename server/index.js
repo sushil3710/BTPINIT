@@ -21,6 +21,7 @@ app.get("/get-stock/:stockName", getStock.getStockData);
 app.get("/get-stock/:stockName/:period", getStock.getStockDataPeriod);
 app.get("/get-prediction/:stockName", getStock.getPrediction);
 app.get("/get-prediction-LSTM/:stockName", getStock.getPredictionLSTM);
+app.get("/get-prediction-GCN/:stockName", getStock.getPredictionGCN);
 
 
 app.listen(PORT, () => {

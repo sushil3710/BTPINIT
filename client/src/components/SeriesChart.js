@@ -5,7 +5,8 @@ const SeriesChart = ({ selectedName, selectedInterval }) => {
   const chartContainerRef = useRef();
   const [seriesdata, setSeriesData] = useState([]);
   const [lineData, setLineData] = useState([]);
-  const [lineDataBoxJen, setLineDataBooxJen] = useState([]);
+  const [lineDataLSTM, setLineDataLSTM] = useState([]);
+  const [lineDataGCN, setLineDataGCN] = useState([]);
 
   const chartOptions = {
     layout: {
@@ -30,8 +31,11 @@ const SeriesChart = ({ selectedName, selectedInterval }) => {
         const lineResponse = await fetch(`http://localhost:8080/get-prediction/${stockName}`);
         const lineRawData = await lineResponse.json();
 
-        const lineResponseBoxJen = await fetch(`http://localhost:8080/get-prediction-BoxJen/${stockName}`);
-        const lineRawDataBoxJen = await lineResponseBoxJen.json();
+        const lineResponseLSTM = await fetch(`http://localhost:8080/get-prediction-LSTM/${stockName}`);
+        const lineRawDataLSTM = await lineResponseLSTM.json();
+
+        const lineResponseGCN = await fetch(`http://localhost:8080/get-prediction-GCN/${stockName}`);
+        const lineRawDataLGCN = await lineResponseGCN.json();
         
         if (Array.isArray(rawData)) {
           const transformedData = rawData.map((item) => {
@@ -55,12 +59,22 @@ const SeriesChart = ({ selectedName, selectedInterval }) => {
             console.error("Invalid data structure received for line data:", lineRawData);
           }
 
-          if (Array.isArray(lineRawDataBoxJen)) {
-            const transformedLineData = lineRawDataBoxJen.map((item) => ({
+          if (Array.isArray(lineRawDataLSTM)) {
+            const transformedLineData = lineRawDataLSTM.map((item) => ({
               time: new Date(item.index).toISOString().split("T")[0],
               value: typeof item.close === "number" ? item.close : 0
             }));
-            setLineDataBooxJen(transformedLineData);
+            setLineDataLSTM(transformedLineData);
+          } else {
+            console.error("Invalid data structure received for line data:", lineRawData);
+          }
+
+          if (Array.isArray(lineRawDataLGCN)) {
+            const transformedLineData = lineRawDataLGCN.map((item) => ({
+              time: new Date(item.index).toISOString().split("T")[0],
+              value: typeof item.close === "number" ? item.close : 0
+            }));
+            setLineDataGCN(transformedLineData);
           } else {
             console.error("Invalid data structure received for line data:", lineRawData);
           }
@@ -80,14 +94,17 @@ const SeriesChart = ({ selectedName, selectedInterval }) => {
   useEffect(() => {
     const chart = createChart(chartContainerRef.current, chartOptions);
 
-    const lineSeries = chart.addLineSeries({ color: "black", lineWidth: 2 });
+    const lineSeries = chart.addLineSeries({ color: "orange", lineWidth: 2 });
     lineSeries.setData(seriesdata);
 
-    const lineSeries_pred = chart.addLineSeries({ color: 'blue', lineWidth: 3 });
-    lineSeries_pred.setData(lineData);
+    // const lineSeries_pred = chart.addLineSeries({ color: 'blue', lineWidth: 3 });
+    // lineSeries_pred.setData(lineData);
 
-    const lineSeries_pred_BoxJen = chart.addLineSeries({ color: 'brown', lineWidth: 3 });
-    lineSeries_pred_BoxJen.setData(lineDataBoxJen);
+    const lineSeries_pred_LSTM = chart.addLineSeries({ color: 'blue', lineWidth: 3 });
+    lineSeries_pred_LSTM.setData(lineDataLSTM);
+
+    const lineSeries_pred_GCN = chart.addLineSeries({ color: 'brown', lineWidth: 3 });
+    lineSeries_pred_GCN.setData(lineDataGCN);
 
     chart.timeScale().fitContent();
 
@@ -101,7 +118,7 @@ const SeriesChart = ({ selectedName, selectedInterval }) => {
       window.removeEventListener("resize", handleResize);
       chart.remove();
     };
-  }, [seriesdata, lineData,lineDataBoxJen]);
+  }, [seriesdata, lineData,lineDataLSTM,lineDataGCN]);
 
   return <div ref={chartContainerRef} />;
 };

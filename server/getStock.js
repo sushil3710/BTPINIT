@@ -202,4 +202,25 @@ const getPrediction = async (req, res) => {
     }
   };
 
-module.exports = { getAllStockData,getStockData,getStockDataPeriod,getAllNames,getNames,getPrediction,getPredictionLSTM};
+  const getPredictionGCN = async (req, res) => {
+    try {
+      const database = mongoose.connection.db;
+      const stockName = req.params.stockName;
+      const period = req.params.period;
+      
+      let stockDataCollection;
+      stockDataCollection = database.collection(`${stockName}_GCN_predicted`);
+      const stockData = await stockDataCollection.find().toArray();
+  
+      // Sort the stockData in ascending order based on the key index
+      //stockData.sort((a, b) => a.key - b.key);
+  
+      res.json(stockData);
+    } catch (error) {
+      console.error(error);
+      // Handle errors and send an appropriate response
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  };
+
+module.exports = { getAllStockData,getStockData,getStockDataPeriod,getAllNames,getNames,getPrediction,getPredictionLSTM,getPredictionGCN};

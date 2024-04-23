@@ -3,12 +3,13 @@ import CandlestickChart from "./chart";
 import SeriesChart from "./SeriesChart";
 import myimage from "../images/logodark.svg";
 import SidePanel from "./SidePanel";
+
 const SearchAndChartHeader = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [names, setNames] = useState([]);
-  const [selectedName, setSelectedName] = useState("RELIANCE.NS");
+  const [selectedName, setSelectedName] = useState("HDFCBANK.NS");
   const [suggestedNames, setSuggestedNames] = useState([]);
-  const [selectedInterval, setSelectedInterval] = useState("5years"); // Default interval is 1day
+  const [selectedInterval, setSelectedInterval] = useState("1year"); // Default interval is 1day
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);

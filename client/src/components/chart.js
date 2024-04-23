@@ -7,6 +7,7 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
   const [candlestickData, setCandlestickData] = useState([]);
   const [lineData, setLineData] = useState([]);
   const [lineDataLSTM, setLineDataLSTM] = useState([]);
+  const [lineDataGCN, setLineDataGCN] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -93,9 +94,13 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
         const lineRawData = await lineResponse.json();
         lineRawData.sort((a, b) => a.index - b.index);
 
-        const lineResponseBoxJen = await fetch(`http://localhost:8080/get-prediction-LSTM/${stockName}`);
-        const lineRawDataBoxJen = await lineResponseBoxJen.json();
-        lineRawDataBoxJen.sort((a, b) => a.index - b.index);
+        const lineResponseLSTM = await fetch(`http://localhost:8080/get-prediction-LSTM/${stockName}`);
+        const lineRawDataLSTM = await lineResponseLSTM.json();
+        lineRawDataLSTM.sort((a, b) => a.index - b.index);
+
+        const lineResponseGCN = await fetch(`http://localhost:8080/get-prediction-GCN/${stockName}`);
+        const lineRawDataGCN = await lineResponseGCN.json();
+        lineRawDataGCN.sort((a, b) => a.index - b.index);
   
         if (Array.isArray(lineRawData)) {
           const transformedData = lineRawData.map((item) => ({
@@ -111,8 +116,8 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
         console.error("Invalid Line data structure received:", lineRawData);
       }
 
-      if (Array.isArray(lineRawDataBoxJen)) {
-        const transformedData = lineRawDataBoxJen.map((item) => ({
+      if (Array.isArray(lineRawDataLSTM)) {
+        const transformedData = lineRawDataLSTM.map((item) => ({
           time: new Date(item.index).toISOString().split("T")[0],
           value: typeof item.close === "number" ? item.close : 0
         }));
@@ -122,8 +127,23 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
         
       
     } else {
-      console.error("Invalid Line data structure received:", lineRawDataBoxJen);
+      console.error("Invalid Line data structure received:", lineRawDataLSTM);
     }
+
+
+    if (Array.isArray(lineRawDataGCN)) {
+      const transformedData = lineRawDataGCN.map((item) => ({
+        time: new Date(item.index).toISOString().split("T")[0],
+        value: typeof item.close === "number" ? item.close : 0
+      }));
+      
+      transformedData.sort((a, b) => new Date(a.time) - new Date(b.time));
+      setLineDataGCN(transformedData);
+      
+    
+  } else {
+    console.error("Invalid Line data structure received:", lineRawDataGCN);
+  }
   
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -132,6 +152,8 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
   
     fetchData();
   }, [selectedName, selectedInterval]);
+
+
   
   
 
@@ -161,6 +183,9 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
     const lineSeriesLSTM = chartRef.current.addLineSeries({ color: 'blue', lineWidth: 2 });
     lineSeriesLSTM.setData(lineDataLSTM);
 
+    const lineSeriesGCN = chartRef.current.addLineSeries({ color: 'brown', lineWidth: 2 });
+    lineSeriesGCN.setData(lineDataGCN);
+
     const handleResize = () => {
       chartRef.current.applyOptions({
         width: chartContainerRef.current.clientWidth,
@@ -173,7 +198,7 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
       window.removeEventListener("resize", handleResize);
       chartRef.current.remove();
     };
-  }, [candlestickData, lineData,lineDataLSTM]);
+  }, [candlestickData, lineData,lineDataLSTM,lineDataGCN]);
 
   return (
     <div>
