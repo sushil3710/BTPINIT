@@ -57,19 +57,25 @@ def generate_predictions(stock_data):
     scaler = MinMaxScaler(feature_range=(0, 1))
     closing_prices = stock_df['close'].values.reshape(-1, 1)
     final_data = scaler.fit_transform(closing_prices)
+    features = stock_df['open'].values.reshape(-1, 1)
+    labels = stock_df['close'].values.reshape(-1, 1)
+    features = scaler.fit_transform(features)
+    labels = scaler.fit_transform(labels)
 
-    X_train, X_test, y_train, y_test = train_test_split(final_data, final_data, test_size=0.2, shuffle=False)
+    X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.2, shuffle=False)
     adjacency_matrix_train = np.eye(len(X_train))
     adjacency_matrix_test = np.eye(len(X_test))
     
 
     features_train = torch.FloatTensor(X_train)
     features_test = torch.FloatTensor(X_test)
+    labels_train=torch.FloatTensor(y_train)
+    labels_test=torch.FloatTensor(y_test)
     adj_tensor_train = torch.FloatTensor(adjacency_matrix_train)
     adj_tensor_test = torch.FloatTensor(adjacency_matrix_test)
 
     model = GCN(input_dim=1, hidden_dim=64, output_dim=1)
-    train_model(model, adj_tensor_train, features_train, features_train)#features =labels as we used only closed price
+    train_model(model, adj_tensor_train, features_train, labels_train)#features =labels as we used only closed price
 
     predicted_normalized = predict(model, adj_tensor_test, features_test)
     predicted_test = scaler.inverse_transform(predicted_normalized.numpy())
@@ -89,8 +95,8 @@ def generate_predictions(stock_data):
 
 for collection_name in db.list_collection_names():
     #print(collection_name)
-    if collection_name != "HDFCBANK.NS":
-        continue
+    # if collection_name != "HDFCBANK.NS":
+    #     continue
     
     # predicted_collection_name = f"{collection_name}_GCN_predicted"
     

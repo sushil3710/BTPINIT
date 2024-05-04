@@ -5,6 +5,7 @@ import calendar
 import pmdarima as pm
 import matplotlib.pyplot as plt
 import pandas as pd
+from sklearn.metrics import mean_squared_error
 import warnings
 import numpy as np
 from statsmodels.graphics.tsaplots import plot_acf
@@ -60,6 +61,9 @@ def generate_predictions(stock_data):
         warnings.simplefilter("ignore", ConvergenceWarning)
 
     pred = model.fit().forecast(steps=test.shape[0])
+    actual_prices=stock_df.close[-len(pred):]
+    
+    mse = mean_squared_error(actual_prices, pred)
 
         
     pred_documents = []
@@ -67,7 +71,8 @@ def generate_predictions(stock_data):
         pred_doc = {
             'index': date.strftime("%Y-%m-%d"),  # Convert datetime to string
             'close': close_pred,
-            'ticker': stock_data[0]['ticker']
+            'ticker': stock_data[0]['ticker'],
+            'MSE':mse
         }
         pred_documents.append(pred_doc)
 
@@ -87,7 +92,7 @@ for collection_name in db.list_collection_names():
        if len(stock_data) < 50:
         continue  # Skip to the next collection
        pred_docs=generate_predictions(stock_data)
-       pred_collection_name = f"{collection_name}_predicted"
+       pred_collection_name = f"{collection_name}_ARIMA_predicted"
        pred_collection = db[pred_collection_name]
        pred_collection.delete_many({})
        pred_collection.insert_many(pred_docs)

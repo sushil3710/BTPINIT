@@ -138,12 +138,13 @@ def generate_predictions(stock_data):
 for collection_name in db.list_collection_names():
     # if collection_name != "HDFCBANK.NS":
     #     continue
-    #    predicted_collection_name = f"{collection_name}_LSTM_predicted"
+    
+    predicted_collection_name = f"{collection_name}_LSTM_predicted"
    
-    #    # Check if this predicted collection name already exists in the database
-    #    if predicted_collection_name in db.list_collection_names():
-    #        print(f"Collection {predicted_collection_name} already exists.")
-    #        continue  # Skip to the next iteration if it exists
+    # Check if this predicted collection name already exists in the database
+    # if predicted_collection_name in db.list_collection_names():
+    #     print(f"Collection {predicted_collection_name} already exists.")
+    #     continue  # Skip to the next iteration if it exists
 
        
     collection = db[collection_name]
