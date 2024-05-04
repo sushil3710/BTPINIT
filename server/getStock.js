@@ -166,7 +166,7 @@ const getPrediction = async (req, res) => {
       const period = req.params.period;
       
       let stockDataCollection;
-      stockDataCollection = database.collection(`${stockName}_predicted`);
+      stockDataCollection = database.collection(`${stockName}_ARIMA_predicted`);
       const stockData = await stockDataCollection.find().toArray();
   
       // Sort the stockData in ascending order based on the key index

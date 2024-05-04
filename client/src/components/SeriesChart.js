@@ -94,11 +94,11 @@ const SeriesChart = ({ selectedName, selectedInterval }) => {
   useEffect(() => {
     const chart = createChart(chartContainerRef.current, chartOptions);
 
-    const lineSeries = chart.addLineSeries({ color: "orange", lineWidth: 2 });
+    const lineSeries = chart.addLineSeries({ color: "green", lineWidth: 2 });
     lineSeries.setData(seriesdata);
 
-    // const lineSeries_pred = chart.addLineSeries({ color: 'blue', lineWidth: 3 });
-    // lineSeries_pred.setData(lineData);
+    const lineSeries_pred = chart.addLineSeries({ color: 'orange', lineWidth: 3 });
+    lineSeries_pred.setData(lineData);
 
     const lineSeries_pred_LSTM = chart.addLineSeries({ color: 'blue', lineWidth: 3 });
     lineSeries_pred_LSTM.setData(lineDataLSTM);

@@ -176,9 +176,10 @@ const CandlestickChart = ({ selectedName, selectedInterval }) => {
       wickDownColor: "rgba(255, 0, 0, 1)",
     });
 
-    //const lineSeries = chartRef.current.addLineSeries({ color: 'brown', lineWidth: 2 });
+    
     candlestickSeries.setData(candlestickData);
-    //lineSeries.setData(lineData);
+    const lineSeries = chartRef.current.addLineSeries({ color: 'orange', lineWidth: 2 });
+    lineSeries.setData(lineData);
 
     const lineSeriesLSTM = chartRef.current.addLineSeries({ color: 'blue', lineWidth: 2 });
     lineSeriesLSTM.setData(lineDataLSTM);

@@ -85,7 +85,7 @@ for collection_name in db.list_collection_names():
        collection = db[collection_name]
        # Get current date
        current_date = datetime.now()
-       start_date = current_date - timedelta(days=400)
+       start_date = current_date - timedelta(days=700)
        query = {'index': {'$gte': start_date}}
        stock_data = list(collection.find(query))
 
